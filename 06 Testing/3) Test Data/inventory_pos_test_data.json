@@ -1,0 +1,85 @@
+{
+  "project": "KV-TMS",
+  "dataset_version": "1.0",
+  "description": "Retail POS product catalog test dataset covering barcodes, multi-tier GST, zero-stock, and concurrency race conditions",
+  "products": [
+    {
+      "product_id": 101,
+      "barcode": "8901234567890",
+      "sku_code": "SKU-HND-DHOKRA-01",
+      "product_name": "Handcrafted Dhokra Brass Figurine",
+      "category": "Tribal Handicrafts",
+      "unit_price": 450.00,
+      "gst_rate_percent": 12.0,
+      "current_stock": 1,
+      "test_purpose": "CONCURRENCY_STRESS_TEST",
+      "mapped_test_case": "TC-POS-03",
+      "notes": "Target for 2 concurrent checkouts simultaneously; verifies SELECT ... FOR UPDATE pessimistic lock"
+    },
+    {
+      "product_id": 102,
+      "barcode": "8901234567891",
+      "sku_code": "SKU-APP-SAMBAL-02",
+      "product_name": "Sambalpuri Handloom Ikat Scarf",
+      "category": "Apparel & Textile",
+      "unit_price": 850.00,
+      "gst_rate_percent": 5.0,
+      "current_stock": 25,
+      "test_purpose": "STANDARD_SALE_5_GST",
+      "mapped_test_case": "TC-POS-01",
+      "notes": "Normal checkout flow with 5% textile GST rate"
+    },
+    {
+      "product_id": 103,
+      "barcode": "8901234567892",
+      "sku_code": "SKU-WDW-STAND-03",
+      "product_name": "Carved Teakwood Desk Organizer",
+      "category": "Woodworking & Carving",
+      "unit_price": 350.00,
+      "gst_rate_percent": 12.0,
+      "current_stock": 0,
+      "test_purpose": "ZERO_STOCK_BLOCK",
+      "mapped_test_case": "TC-POS-04",
+      "notes": "Tests HTTP 409 Conflict rejection when attempting to purchase exhausted stock"
+    },
+    {
+      "product_id": 104,
+      "barcode": "8901234567893",
+      "sku_code": "SKU-FDP-HONEY-04",
+      "product_name": "Organic Forest Wild Honey (500g)",
+      "category": "Food Processing",
+      "unit_price": 280.00,
+      "gst_rate_percent": 5.0,
+      "current_stock": 50,
+      "test_purpose": "FOOD_GST_EXEMPT_TEST",
+      "mapped_test_case": "TC-POS-02",
+      "notes": "Food processing product category with 5% agricultural GST"
+    },
+    {
+      "product_id": 105,
+      "barcode": "8901234567894",
+      "sku_code": "SKU-MTL-LAMP-05",
+      "product_name": "Bell Metal Traditional Ritual Lamp",
+      "category": "Metal Craft & Dhokra",
+      "unit_price": 1200.00,
+      "gst_rate_percent": 18.0,
+      "current_stock": 12,
+      "test_purpose": "LUXURY_18_GST_TEST",
+      "mapped_test_case": "TC-POS-02",
+      "notes": "Premium metal craft item testing 18% GST tier and dual Cash/UPI split checkout"
+    },
+    {
+      "product_id": 106,
+      "barcode": "8901234567895",
+      "sku_code": "SKU-HND-PAINT-06",
+      "product_name": "Sora Tribal Wall Art Canvas",
+      "category": "Tribal Handicrafts",
+      "unit_price": 600.00,
+      "gst_rate_percent": 12.0,
+      "current_stock": 8,
+      "test_purpose": "AI_FORECAST_TARGET",
+      "mapped_test_case": "TC-AI-01",
+      "notes": "High-volume artisan product used to generate 30-day Holt-Winters demand projection curves"
+    }
+  ]
+}

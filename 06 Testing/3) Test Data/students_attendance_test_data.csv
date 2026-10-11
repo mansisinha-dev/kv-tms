@@ -1,0 +1,13 @@
+student_id,first_name,last_name,department_trade,total_sessions,attended_sessions,attendance_percentage,is_at_risk,dbt_eligibility_status,mapped_test_case,notes
+STU-2026-001,Birsa,Munda,Tribal Handicrafts,200,150,75.00,false,QUALIFIED,TC-ATT-04,Exact 75.0% boundary condition - qualified for DBT stipend
+STU-2026-002,Sunita,Kisku,Tribal Handicrafts,200,149,74.50,true,DISQUALIFIED,TC-ATT-03,Immediate boundary failure (74.5%) - flagged at risk & DBT denied
+STU-2026-003,Mangal,Soren,Apparel & Textile,200,148,74.00,true,DISQUALIFIED,TC-ATT-03,Sub-boundary failure - DBT payout blocked
+STU-2026-004,Pravati,Majhi,Apparel & Textile,200,192,96.00,false,QUALIFIED,TC-ATT-01,High attendance cohort - honor roll & instant DBT approval
+STU-2026-005,Rabi,Hembram,Woodworking & Carving,200,170,85.00,false,QUALIFIED,TC-ATT-01,Normal compliant student profile
+STU-2026-006,Laxmi,Oram,Woodworking & Carving,200,120,60.00,true,DISQUALIFIED,TC-DBT-03,Chronic absentee cohort - remediation mandatory
+STU-2026-007,Sukumar,Baske,Metal Craft & Dhokra,200,151,75.50,false,QUALIFIED,TC-ATT-04,Safe boundary buffer condition
+STU-2026-008,Jayanti,Murmu,Metal Craft & Dhokra,200,100,50.00,true,DISQUALIFIED,TC-DBT-03,Severe absenteeism - dropout alert
+STU-2026-009,Dharanidhar,Nayak,Food Processing,200,180,90.00,false,QUALIFIED,TC-ATT-01,Exemplary attendance record
+STU-2026-010,Basanti,Tudu,Food Processing,200,145,72.50,true,DISQUALIFIED,TC-DBT-03,Disqualified from monthly welfare stipend cycle
+STU-2026-011,Chandra,Marandi,Tribal Handicrafts,200,150,75.00,false,QUALIFIED,TC-ATT-05,Attendance restored via approved medical adjustment
+STU-2026-012,Kamala,Hansdah,Apparel & Textile,200,155,77.50,false,QUALIFIED,TC-DBT-01,Standard eligible candidate for EWYL piece rate payout

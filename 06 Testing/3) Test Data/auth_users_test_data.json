@@ -1,0 +1,73 @@
+{
+  "project": "KV-TMS",
+  "dataset_version": "1.0",
+  "description": "Synthetic multi-role user accounts and credentials for RBAC, JWT, and biometric auth testing",
+  "dpdp_act_compliance": "All Aadhaar numbers, bank account numbers, and biometric hashes are synthetic tokens strictly for testing",
+  "test_users": [
+    {
+      "user_id": 1,
+      "username": "admin_mansi",
+      "email": "admin.testing@kiss.ac.in",
+      "role": "ROLE_ADMIN",
+      "password_plaintext": "AdminPass@2026",
+      "password_bcrypt_hash": "$2a$10$wT8m9Z1N...synthetic_bcrypt_hash...",
+      "is_active": true,
+      "rfid_card_uid": "A1B2C3D4",
+      "masked_aadhaar_token": "XXXX-XXXX-9011",
+      "test_purpose": "FULL_SYSTEM_ADMINISTRATION",
+      "mapped_test_case": "TC-AUTH-01"
+    },
+    {
+      "user_id": 2,
+      "username": "trainer_sanatan",
+      "email": "trainer.textile@kiss.ac.in",
+      "role": "ROLE_INSTRUCTOR",
+      "password_plaintext": "TrainerPass@2026",
+      "password_bcrypt_hash": "$2a$10$eK2j8P3M...synthetic_bcrypt_hash...",
+      "is_active": true,
+      "rfid_card_uid": "E5F6G7H8",
+      "masked_aadhaar_token": "XXXX-XXXX-9022",
+      "test_purpose": "ATTENDANCE_OVERRIDE_AND_BATCH_CREATION",
+      "mapped_test_case": "TC-ATT-05"
+    },
+    {
+      "user_id": 3,
+      "username": "pos_kalinga_01",
+      "email": "pos.counter1@kiss.ac.in",
+      "role": "ROLE_POS_OPERATOR",
+      "password_plaintext": "PosPass@2026",
+      "password_bcrypt_hash": "$2a$10$uY4t1R9Q...synthetic_bcrypt_hash...",
+      "is_active": true,
+      "rfid_card_uid": "I9J0K1L2",
+      "masked_aadhaar_token": "XXXX-XXXX-9033",
+      "test_purpose": "RETAIL_BARCODE_SCAN_AND_CONCURRENCY_TEST",
+      "mapped_test_case": "TC-POS-03"
+    },
+    {
+      "user_id": 4,
+      "username": "qa_inspector_das",
+      "email": "qa.inspector@kiss.ac.in",
+      "role": "ROLE_QA_OFFICER",
+      "password_plaintext": "QaPass@2026",
+      "password_bcrypt_hash": "$2a$10$oL7p3W5S...synthetic_bcrypt_hash...",
+      "is_active": true,
+      "rfid_card_uid": "M3N4O5P6",
+      "masked_aadhaar_token": "XXXX-XXXX-9044",
+      "test_purpose": "QUALITY_INSPECTION_GATE_SIGN_OFF",
+      "mapped_test_case": "TC-QC-02"
+    },
+    {
+      "user_id": 5,
+      "username": "student_birsa",
+      "email": "birsa.munda@kiss.ac.in",
+      "role": "ROLE_STUDENT",
+      "password_plaintext": "StudentPass@2026",
+      "password_bcrypt_hash": "$2a$10$aB1c2D3E...synthetic_bcrypt_hash...",
+      "is_active": true,
+      "rfid_card_uid": "Q7R8S9T0",
+      "masked_aadhaar_token": "XXXX-XXXX-9055",
+      "test_purpose": "BIOMETRIC_TAP_AND_RBAC_ESCALATION_BLOCK",
+      "mapped_test_case": "TC-AUTH-04"
+    }
+  ]
+}

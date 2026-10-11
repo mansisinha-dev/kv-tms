@@ -1,0 +1,134 @@
+{
+  "project": "KV-TMS",
+  "document_id": "KV-TMS-STLC-DTL-v1.0",
+  "version": "1.0",
+  "defect_lifecycle_standard": "IEEE 1044 Standard for Software Defect Classification",
+  "candidate": "Mansi Sinha",
+  "total_defects_logged": 6,
+  "defects_resolved": 6,
+  "defects_verified_closed": 6,
+  "open_defects": 0,
+  "defects": [
+    {
+      "defect_id": "BUG-001",
+      "title": "POS Race Condition Overselling on Single Stock Unit Under Concurrent Checkouts",
+      "severity": "P1 - Blocker",
+      "priority": "High",
+      "module": "com.kiss.kv_tms.pos",
+      "mapped_test_case": "TC-POS-03",
+      "reported_date": "2026-10-02",
+      "resolved_date": "2026-10-03",
+      "status": "CLOSED",
+      "steps_to_reproduce": [
+        "1. Set inventory available_stock = 1 for SKU-HND-DHOKRA-01.",
+        "2. Fire 2 simultaneous POST /api/v1/pos/orders checkout requests from different terminals."
+      ],
+      "expected_result": "First transaction commits; second transaction rejected with HTTP 409 Conflict (Stock Exhausted). Available stock remains 0.",
+      "actual_result": "Both transactions read available_stock = 1 before commit; both completed; stock decremented to -1 (overselling).",
+      "root_cause": "InventoryRepository query lacked pessimistic row-level locking (SELECT ... FOR UPDATE).",
+      "fix_description": "Added @Lock(LockModeType.PESSIMISTIC_WRITE) on findByIdForUpdate() in InventoryRepository.",
+      "verification_test": "JMeter 50-thread stress test confirmed exactly 1 checkout succeeded and 49 received HTTP 409."
+    },
+    {
+      "defect_id": "BUG-002",
+      "title": "Floating-Point Binary Rounding Error in 74.9% Attendance Rule Engine",
+      "severity": "P2 - Critical",
+      "priority": "High",
+      "module": "com.kiss.kv_tms.attendance",
+      "mapped_test_case": "TC-ATT-03",
+      "reported_date": "2026-10-03",
+      "resolved_date": "2026-10-04",
+      "status": "CLOSED",
+      "steps_to_reproduce": [
+        "1. Create student record with 149 attended sessions out of 200 total sessions.",
+        "2. Invoke attendance calculation service to evaluate DBT eligibility."
+      ],
+      "expected_result": "Student attendance evaluated as exactly 74.50%; is_at_risk set to true; disqualified from DBT.",
+      "actual_result": "Double precision division produced 74.50000000000001; edge comparison intermittently evaluated boundary incorrectly.",
+      "root_cause": "Primitive double precision arithmetic in AttendanceCalculationService.",
+      "fix_description": "Refactored formula to BigDecimal with 4 decimal scale and RoundingMode.HALF_UP.",
+      "verification_test": "Boundary unit test TC-ATT-03 passes deterministically with exact 74.50% evaluation."
+    },
+    {
+      "defect_id": "BUG-003",
+      "title": "BOM Work Order Creation Permitting Negative Raw Material Warehouse Balances",
+      "severity": "P2 - Critical",
+      "priority": "Medium",
+      "module": "com.kiss.kv_tms.manufacturing",
+      "mapped_test_case": "TC-MFG-02",
+      "reported_date": "2026-10-04",
+      "resolved_date": "2026-10-05",
+      "status": "CLOSED",
+      "steps_to_reproduce": [
+        "1. Request manufacturing batch of 100 Dhokra figurines requiring 80kg brass scrap.",
+        "2. Warehouse 1 current inventory has only 40kg brass scrap.",
+        "3. Submit POST /api/v1/production/batches."
+      ],
+      "expected_result": "Request rejected with HTTP 422 Unprocessable Entity; descriptive error returned; batch not created.",
+      "actual_result": "Batch was created with status PLANNED; warehouse inventory went negative (-40kg) during reservation.",
+      "root_cause": "Omission of pre-flight cumulative inventory validation prior to batch entity persistence.",
+      "fix_description": "Added pre-reservation validation loop in ManufacturingService; throws InsufficientRawMaterialException.",
+      "verification_test": "Automated MockMvc test TC-MFG-02 confirms HTTP 422 response and zero stock alteration."
+    },
+    {
+      "defect_id": "BUG-004",
+      "title": "Central and State GST Split Truncation Discrepancy on Odd Rupee Retail Invoices",
+      "severity": "P3 - Major",
+      "priority": "Medium",
+      "module": "com.kiss.kv_tms.pos",
+      "mapped_test_case": "TC-POS-02",
+      "reported_date": "2026-10-05",
+      "resolved_date": "2026-10-06",
+      "status": "CLOSED",
+      "steps_to_reproduce": [
+        "1. Process POS retail order totaling ₹455.00 subject to 5% GST (Total Tax = ₹22.75).",
+        "2. Generate GST invoice splitting tax into CGST (2.5%) and SGST (2.5%)."
+      ],
+      "expected_result": "CGST = ₹11.38, SGST = ₹11.37 (or vice versa); Sum of split taxes = ₹22.75 exact matching total tax.",
+      "actual_result": "Both CGST and SGST rounded down to ₹11.37; Total Split Tax = ₹22.74 (discrepancy of ₹0.01).",
+      "root_cause": "Naive round-down truncation on independent tax component calculations.",
+      "fix_description": "Implemented Banker's Rounding (HALF_EVEN) with balancing delta applied to SGST line item.",
+      "verification_test": "Test case TC-POS-02 verified exact penny matching across all odd rupee invoice permutations."
+    },
+    {
+      "defect_id": "BUG-005",
+      "title": "Holt-Winters 30-Day Demand Projection CSV Export Formatting Anomaly",
+      "severity": "P3 - Major",
+      "priority": "Low",
+      "module": "com.kiss.kv_tms.forecast_dbt",
+      "mapped_test_case": "TC-AI-01",
+      "reported_date": "2026-10-06",
+      "resolved_date": "2026-10-07",
+      "status": "CLOSED",
+      "steps_to_reproduce": [
+        "1. Generate 30-day demand forecast for artisan craft SKUs.",
+        "2. Export forecast results via GET /api/v1/forecast/export/csv."
+      ],
+      "expected_result": "Clean CSV file with confidence interval vectors neatly enclosed in single columns.",
+      "actual_result": "Unquoted commas in confidence intervals ([182.5, 190.2]) caused cell shifting in spreadsheet readers.",
+      "root_cause": "Missing RFC 4180 quotation wrapper in custom CSV streaming writer.",
+      "fix_description": "Enclosed complex vector fields in standard RFC 4180 double-quoted string blocks.",
+      "verification_test": "Exported CSV verified clean import across Microsoft Excel and LibreOffice Calc."
+    },
+    {
+      "defect_id": "BUG-006",
+      "title": "Student Registration Department Dropdown UI Tooltip Truncation on Mobile Viewport",
+      "severity": "P4 - Minor",
+      "priority": "Low",
+      "module": "com.kiss.kv_tms.frontend",
+      "mapped_test_case": "UI-RESPONSIVE-01",
+      "reported_date": "2026-10-07",
+      "resolved_date": "2026-10-07",
+      "status": "CLOSED",
+      "steps_to_reproduce": [
+        "1. Open student registration form in Chrome mobile device emulator (375px width).",
+        "2. Hover over trade selection info tooltip."
+      ],
+      "expected_result": "Tooltip renders fully visible above form card.",
+      "actual_result": "Tooltip clipped horizontally due to parent card overflow: hidden rule.",
+      "root_cause": "CSS overflow clipping on parent container.",
+      "fix_description": "Migrated tooltip component to React Portal rendering directly onto document.body.",
+      "verification_test": "Verified tooltip visibility across mobile and tablet viewports."
+    }
+  ]
+}

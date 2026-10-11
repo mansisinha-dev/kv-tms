@@ -1,0 +1,55 @@
+# ==============================================================================
+# KISS Vocational Training Management System (KV-TMS)
+# Root Git Ignore Configuration
+# ==============================================================================
+
+# Node / Frontend Dependencies & Builds
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+frontend/dist/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java / Maven Artifacts & Builds
+**/target/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+kv-tms/target/
+
+# IDE & Editor Files
+.idea/
+**/.idea/
+*.iml
+.vscode/
+**/.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+
+# Microsoft Office Lock Files & Temporary Autosaves
+~$*.docx
+~$*.pptx
+~$*.xlsx
+*.tmp
+
+# Environment Variables & Local Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

@@ -1,0 +1,111 @@
+{
+  "project": "KV-TMS",
+  "dataset_version": "1.0",
+  "description": "Vocational manufacturing Bill of Materials (BOM) and raw material warehouse fixtures",
+  "raw_materials": [
+    {
+      "material_id": 201,
+      "material_code": "RM-FAB-COTTON",
+      "material_name": "Organic Cotton Yarn (Kg)",
+      "current_stock": 250.0,
+      "unit_of_measure": "KG",
+      "reorder_threshold": 50.0,
+      "unit_cost": 180.00,
+      "test_condition": "SUFFICIENT_STOCK",
+      "mapped_test_case": "TC-MFG-01"
+    },
+    {
+      "material_id": 202,
+      "material_code": "RM-DYE-NATURAL",
+      "material_name": "Vegetable Indigo Dye Extract",
+      "current_stock": 15.0,
+      "unit_of_measure": "LITER",
+      "reorder_threshold": 30.0,
+      "unit_cost": 320.00,
+      "test_condition": "LOW_STOCK_WARNING",
+      "mapped_test_case": "TC-MFG-01"
+    },
+    {
+      "material_id": 203,
+      "material_code": "RM-MTL-BRASS",
+      "material_name": "Recycled Brass Scrap Metal",
+      "current_stock": 40.0,
+      "unit_of_measure": "KG",
+      "reorder_threshold": 100.0,
+      "unit_cost": 420.00,
+      "test_condition": "INSUFFICIENT_STOCK_BLOCK",
+      "mapped_test_case": "TC-MFG-02"
+    },
+    {
+      "material_id": 204,
+      "material_code": "RM-WD-TEAK",
+      "material_name": "Seasoned Teak Timber Blocks",
+      "current_stock": 500.0,
+      "unit_of_measure": "SQ_FT",
+      "reorder_threshold": 80.0,
+      "unit_cost": 150.00,
+      "test_condition": "SUFFICIENT_STOCK",
+      "mapped_test_case": "TC-MFG-03"
+    }
+  ],
+  "bill_of_materials": [
+    {
+      "bom_id": 301,
+      "product_sku": "SKU-APP-SAMBAL-02",
+      "product_name": "Sambalpuri Handloom Ikat Scarf",
+      "target_batch_size": 50,
+      "required_materials": [
+        {
+          "material_code": "RM-FAB-COTTON",
+          "quantity_per_unit": 0.40,
+          "total_required": 20.0,
+          "availability_status": "AVAILABLE"
+        },
+        {
+          "material_code": "RM-DYE-NATURAL",
+          "quantity_per_unit": 0.05,
+          "total_required": 2.5,
+          "availability_status": "AVAILABLE"
+        }
+      ],
+      "test_expected_outcome": "BATCH_CREATION_SUCCESS",
+      "mapped_test_case": "TC-MFG-01"
+    },
+    {
+      "bom_id": 302,
+      "product_sku": "SKU-HND-DHOKRA-01",
+      "product_name": "Handcrafted Dhokra Brass Figurine",
+      "target_batch_size": 100,
+      "required_materials": [
+        {
+          "material_code": "RM-MTL-BRASS",
+          "quantity_per_unit": 0.80,
+          "total_required": 80.0,
+          "availability_status": "DEFICIENT (Stock is 40.0, required 80.0)"
+        }
+      ],
+      "test_expected_outcome": "HTTP_422_INSUFFICIENT_RAW_MATERIAL",
+      "mapped_test_case": "TC-MFG-02"
+    }
+  ],
+  "quality_inspection_standards": [
+    {
+      "trade_category": "Apparel & Textile",
+      "parameter": "Weave Density & Dimensional Tolerance",
+      "acceptable_tolerance_percent": 5.0,
+      "pass_action": "MOVE_TO_WAREHOUSE_2_FINISHED_GOODS",
+      "quarantine_action": "SUPERVISOR_REINSPECTION_QUEUE",
+      "fail_action": "ROUTE_TO_REWORK_OR_SCRAP",
+      "mapped_test_case": "TC-QC-02"
+    },
+    {
+      "trade_category": "Metal Craft & Dhokra",
+      "parameter": "Casting Surface Integrity & Weight Variance",
+      "acceptable_tolerance_percent": 8.0,
+      "pass_action": "BARCODE_TAGGING_AND_RETAIL_ENTRY",
+      "quarantine_action": "ALLOY_POROSITY_RECHECK",
+      "fail_action": "REMELTING_SCRAP_FURNACE",
+      "mapped_test_case": "TC-QC-03"
+    }
+  ]
+}

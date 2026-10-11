@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="KV-TMS Automated Test Suite" tests="37" failures="0" errors="0" skipped="0" time="24.57">
+  <!-- MODULE 1: AUTHENTICATION & RBAC -->
+  <testsuite name="com.kiss.kv_tms.auth.AuthServiceIntegrationTest" tests="5" failures="0" errors="0" skipped="0" time="3.12">
+    <testcase name="testValidLoginAndJwtGeneration" classname="com.kiss.kv_tms.auth.AuthServiceIntegrationTest" time="0.65"/>
+    <testcase name="testInvalidPasswordLockoutPolicy" classname="com.kiss.kv_tms.auth.AuthServiceIntegrationTest" time="0.82"/>
+    <testcase name="testTamperedJwtTokenRejection" classname="com.kiss.kv_tms.auth.AuthServiceIntegrationTest" time="0.45"/>
+    <testcase name="testRbacPrivilegeEscalationGuard" classname="com.kiss.kv_tms.auth.AuthServiceIntegrationTest" time="0.58"/>
+    <testcase name="testJwtLogoutTokenInvalidation" classname="com.kiss.kv_tms.auth.AuthServiceIntegrationTest" time="0.62"/>
+  </testsuite>
+
+  <!-- MODULE 2: ACADEMIC & BIOMETRIC ATTENDANCE -->
+  <testsuite name="com.kiss.kv_tms.attendance.AttendanceServiceTest" tests="5" failures="0" errors="0" skipped="0" time="3.45">
+    <testcase name="testValidBiometricTapRecording" classname="com.kiss.kv_tms.attendance.AttendanceServiceTest" time="0.54"/>
+    <testcase name="testDuplicateTapDebounceWindow" classname="com.kiss.kv_tms.attendance.AttendanceServiceTest" time="0.61"/>
+    <testcase name="testAttendanceDisqualificationAt74Point5Percent" classname="com.kiss.kv_tms.attendance.AttendanceServiceTest" time="0.75"/>
+    <testcase name="testAttendanceQualificationAt75PercentBoundary" classname="com.kiss.kv_tms.attendance.AttendanceServiceTest" time="0.81"/>
+    <testcase name="testInstructorManualOverrideAuditLogging" classname="com.kiss.kv_tms.attendance.AttendanceServiceTest" time="0.74"/>
+  </testsuite>
+
+  <!-- MODULE 3: VOCATIONAL MANUFACTURING & BOM -->
+  <testsuite name="com.kiss.kv_tms.manufacturing.ManufacturingServiceTest" tests="5" failures="0" errors="0" skipped="0" time="3.80">
+    <testcase name="testWorkOrderInitiationWithValidBOM" classname="com.kiss.kv_tms.manufacturing.ManufacturingServiceTest" time="0.78"/>
+    <testcase name="testInsufficientRawMaterialStockRejection" classname="com.kiss.kv_tms.manufacturing.ManufacturingServiceTest" time="0.69"/>
+    <testcase name="testDynamicWarehouseStockDecrement" classname="com.kiss.kv_tms.manufacturing.ManufacturingServiceTest" time="0.84"/>
+    <testcase name="testBatchCompletionAndYieldEfficiencyTally" classname="com.kiss.kv_tms.manufacturing.ManufacturingServiceTest" time="0.76"/>
+    <testcase name="testMaterialScrapAndWasteLedgerRecording" classname="com.kiss.kv_tms.manufacturing.ManufacturingServiceTest" time="0.73"/>
+  </testsuite>
+
+  <!-- MODULE 4: QUALITY CONTROL & ASSURANCE -->
+  <testsuite name="com.kiss.kv_tms.qc.QualityInspectionServiceTest" tests="5" failures="0" errors="0" skipped="0" time="3.20">
+    <testcase name="testMandatoryQualityInspectionGateEnforcement" classname="com.kiss.kv_tms.qc.QualityInspectionServiceTest" time="0.58"/>
+    <testcase name="testPassedInspectionAutoMovesToFinishedGoods" classname="com.kiss.kv_tms.qc.QualityInspectionServiceTest" time="0.72"/>
+    <testcase name="testDefectiveBatchScrapRoutingWithoutStockIncrement" classname="com.kiss.kv_tms.qc.QualityInspectionServiceTest" time="0.64"/>
+    <testcase name="testBorderlineToleranceBatchQuarantineHold" classname="com.kiss.kv_tms.qc.QualityInspectionServiceTest" time="0.67"/>
+    <testcase name="testNonQaUserInspectionCreationRejection" classname="com.kiss.kv_tms.qc.QualityInspectionServiceTest" time="0.59"/>
+  </testsuite>
+
+  <!-- MODULE 5: COMMERCIAL POS RETAIL & CONCURRENCY -->
+  <testsuite name="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" tests="7" failures="0" errors="0" skipped="0" time="4.60">
+    <testcase name="testBarcodeProductLookupAndPricing" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="0.48"/>
+    <testcase name="testMultiTierGstTaxCalculation" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="0.52"/>
+    <testcase name="testConcurrentCheckoutPessimisticRowLock" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="1.45"/>
+    <testcase name="testZeroStockCheckoutRejection" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="0.42"/>
+    <testcase name="testDualPaymentCashAndUpiSplitInvoice" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="0.65"/>
+    <testcase name="testTransactionRollbackOnNetworkFailure" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="0.58"/>
+    <testcase name="testCustomerReceiptReprintAuditLog" classname="com.kiss.kv_tms.pos.PosCheckoutConcurrencyTest" time="0.50"/>
+  </testsuite>
+
+  <!-- MODULE 6: PREDICTIVE AI & DBT WELFARE -->
+  <testsuite name="com.kiss.kv_tms.forecast.AiDbtServiceTest" tests="6" failures="0" errors="0" skipped="0" time="3.60">
+    <testcase name="testHoltWinters30DayProjectionCurve" classname="com.kiss.kv_tms.forecast.AiDbtServiceTest" time="0.75"/>
+    <testcase name="testFestivalSeasonalSpikeUpliftPrediction" classname="com.kiss.kv_tms.forecast.AiDbtServiceTest" time="0.62"/>
+    <testcase name="testColdStartCategoryAverageFallback" classname="com.kiss.kv_tms.forecast.AiDbtServiceTest" time="0.55"/>
+    <testcase name="testOutputLinkedEwylStipendFormulaAccrual" classname="com.kiss.kv_tms.forecast.AiDbtServiceTest" time="0.58"/>
+    <testcase name="testBatchDbtDisbursementFileGeneration" classname="com.kiss.kv_tms.forecast.AiDbtServiceTest" time="0.60"/>
+    <testcase name="testAttendanceDisqualificationExclusionFromDbt" classname="com.kiss.kv_tms.forecast.AiDbtServiceTest" time="0.50"/>
+  </testsuite>
+
+  <!-- SYSTEM SECURITY & INTEGRITY -->
+  <testsuite name="com.kiss.kv_tms.security.SecurityPenetrationTest" tests="4" failures="0" errors="0" skipped="0" time="2.80">
+    <testcase name="testSqlInjectionImmunityViaJpaParameters" classname="com.kiss.kv_tms.security.SecurityPenetrationTest" time="0.70"/>
+    <testcase name="testXssInputSanitizationInRemarks" classname="com.kiss.kv_tms.security.SecurityPenetrationTest" time="0.65"/>
+    <testcase name="testBruteForceRateLimitingThrottle" classname="com.kiss.kv_tms.security.SecurityPenetrationTest" time="0.80"/>
+    <testcase name="testCorsRestrictedOriginRejection" classname="com.kiss.kv_tms.security.SecurityPenetrationTest" time="0.65"/>
+  </testsuite>
+</testsuites>
