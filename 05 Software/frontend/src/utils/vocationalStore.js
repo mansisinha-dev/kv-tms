@@ -2,33 +2,34 @@
 // KISS VOCATIONAL TRAINING MANAGEMENT SYSTEM (KV-TMS)
 // Synchronized Store for QA Inspections, Defect/Damage Handling, Equipment,
 // 360° User Feedback, NSQF Competency Rubrics, Certifications & Placements
+// Aligned 100% with Live MySQL Database Entities (DataInitializer.java)
 // ============================================================================
 
 const KEYS = {
-    QA_INSPECTIONS: 'kvtms_qa_inspections_v1',
-    DAMAGE_LOGS: 'kvtms_damage_logs_v1',
-    EQUIPMENT_LOGS: 'kvtms_equipment_logs_v1',
-    FEEDBACK_LOGS: 'kvtms_feedback_logs_v1',
-    TRAINER_SKILL_NOTES: 'kvtms_trainer_skill_notes_v1',
-    PLACEMENTS: 'kvtms_placements_v1',
-    POS_RETURNS: 'kvtms_pos_returns_v1',
-    RUBRIC_SCORES: 'kvtms_rubric_scores_v1'
+    QA_INSPECTIONS: 'kvtms_qa_inspections_v2_live',
+    DAMAGE_LOGS: 'kvtms_damage_logs_v2_live',
+    EQUIPMENT_LOGS: 'kvtms_equipment_logs_v2_live',
+    FEEDBACK_LOGS: 'kvtms_feedback_logs_v2_live',
+    TRAINER_SKILL_NOTES: 'kvtms_trainer_skill_notes_v2_live',
+    PLACEMENTS: 'kvtms_placements_v2_live',
+    POS_RETURNS: 'kvtms_pos_returns_v2_live',
+    RUBRIC_SCORES: 'kvtms_rubric_scores_v2_live'
 };
 
-// Default Seed Data for QA Inspections (Unit-level split: Passed, Rework, Scrap)
+// Default Seed Data for QA Inspections (Aligned with real batches in DataInitializer.java)
 const DEFAULT_QA_INSPECTIONS = [
     {
         id: 'QA-2026-101',
-        batchNumber: 'BATCH-2026-001',
-        productName: 'Tribal Motif Handwoven Cotton Kurta',
-        trade: 'Apparels & Tailoring',
-        workshopName: 'Tailoring Studio Lab-1',
-        inspectorName: 'Dr. Prashanta Kumar Routray (QA Directorate)',
-        inspectionDate: '2026-10-08',
-        targetQty: 25,
-        producedQty: 25,
-        passedQty: 22,
-        reworkQty: 2,
+        batchNumber: 'BATCH-2026-SEW-001',
+        productName: 'Handcrafted Cotton Kurti',
+        trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
+        workshopName: 'Workshop Lab #1 (Sewing & Textiles)',
+        inspectorName: 'Dr. Debashis Mohanty (KISS-ADM-001)',
+        inspectionDate: '2026-10-09',
+        targetQty: 15,
+        producedQty: 15,
+        passedQty: 13,
+        reworkQty: 1,
         scrapQty: 1,
         checklist: {
             dimensionalAccuracy: 9,
@@ -36,44 +37,21 @@ const DEFAULT_QA_INSPECTIONS = [
             surfaceFinish: 8,
             packagingHygiene: 10
         },
-        defectCategory: 'Minor Collar Seam Tension Variance (2 units)',
-        correctiveAction: '2 kurtas sent back to Tailoring Studio Lab-1 for collar re-stitching; 1 unit logged as fabric cutting practice scrap.',
+        defectCategory: 'Minor Collar Seam Tension Variance (1 unit)',
+        correctiveAction: '1 kurti returned to Workshop Lab #1 for collar lockstitch re-hemming; 1 unit logged as pattern-cutting practice scrap.',
         status: 'CLEARED_WITH_PARTIAL_REWORK'
     },
     {
         id: 'QA-2026-102',
-        batchNumber: 'BATCH-2026-002',
-        productName: 'Terracotta Painted Tribal Lamp Set',
-        trade: 'Terracotta & Pottery',
-        workshopName: 'Ceramics & Kiln Studio-2',
-        inspectorName: 'Prof. S. Sinha (Master Artisan & QA)',
-        inspectionDate: '2026-10-09',
-        targetQty: 30,
-        producedQty: 30,
-        passedQty: 27,
-        reworkQty: 1,
-        scrapQty: 2,
-        checklist: {
-            dimensionalAccuracy: 9,
-            craftsmanship: 9,
-            surfaceFinish: 9,
-            packagingHygiene: 9
-        },
-        defectCategory: 'Kiln Thermal Hairline Crack (2 units) & Glaze Touch-up (1 unit)',
-        correctiveAction: '2 cracked lamps written off to kiln breakage log; 1 lamp recoated with natural ochre glaze.',
-        status: 'CLEARED_FOR_SALE'
-    },
-    {
-        id: 'QA-2026-103',
-        batchNumber: 'BATCH-2026-003',
-        productName: 'Carved Bamboo Desk Organizer',
-        trade: 'Bamboo & Wood Crafts',
-        workshopName: 'Bamboo Craft Workshop-3',
-        inspectorName: 'Quality Assurance Cell',
+        batchNumber: 'BATCH-2026-SAM-001',
+        productName: 'Sambalpuri Handloom Stole',
+        trade: 'Handicrafts & Tribal Art (VOC-ART-102)',
+        workshopName: 'Workshop Lab #2 (Sambalpuri Handloom)',
+        inspectorName: 'Prof. Sanatan Marndi (KISS-FAC-001)',
         inspectionDate: '2026-10-10',
-        targetQty: 20,
-        producedQty: 20,
-        passedQty: 20,
+        targetQty: 10,
+        producedQty: 10,
+        passedQty: 10,
         reworkQty: 0,
         scrapQty: 0,
         checklist: {
@@ -83,7 +61,7 @@ const DEFAULT_QA_INSPECTIONS = [
             packagingHygiene: 10
         },
         defectCategory: 'Zero Defects (100% First-Pass Yield)',
-        correctiveAction: 'All 20 units cleared for showroom display and DBT stipend disbursement.',
+        correctiveAction: 'All 10 Sambalpuri stoles certified Grade-A and dispatched to Sales POS showroom rack.',
         status: 'CLEARED_FOR_SALE'
     }
 ];
@@ -92,48 +70,48 @@ const DEFAULT_QA_INSPECTIONS = [
 const DEFAULT_DAMAGE_LOGS = [
     {
         id: 'DMG-2026-01',
-        date: '2026-10-07',
-        itemType: 'FINISHED_GOOD',
-        itemName: 'Terracotta Painted Tribal Lamp Set',
-        batchOrSku: 'BATCH-2026-002',
-        quantityDamaged: 2,
-        unit: 'Units',
-        damageStage: 'Kiln Firing & Cooling (Workshop)',
-        reason: 'Thermal shock hairline crack during kiln cooling phase by beginner trainees',
-        disposition: 'SCRAP_WRITE_OFF',
-        reportedBy: 'Rahul Verma (KISS-PRD-001)',
-        estimatedLoss: 450,
-        preventionNote: 'Instructed trainees to reduce kiln cooling vent opening rate below 15°C/hr.'
+        date: '2026-10-08',
+        itemType: 'RAW_MATERIAL',
+        itemName: 'Pure Cotton Fabric',
+        batchOrSku: 'BATCH-2026-SEW-001',
+        quantityDamaged: 2.5,
+        unit: 'Meters',
+        damageStage: 'Pattern Cutting Practice (Workshop Lab #1)',
+        reason: 'Initial sleeve pattern misalignment during beginner scholar practice session',
+        disposition: 'RECYCLED_FOR_PATCHWORK',
+        reportedBy: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        estimatedLoss: 300,
+        preventionNote: 'Added mandatory brown-paper template check before cutting Pure Cotton Fabric.'
     },
     {
         id: 'DMG-2026-02',
-        date: '2026-10-08',
-        itemType: 'RAW_MATERIAL',
-        itemName: 'Organic Handloom Cotton Fabric',
-        batchOrSku: 'RM-COT-01',
-        quantityDamaged: 3.5,
-        unit: 'Meters',
-        damageStage: 'Pattern Cutting Practice (Training Lab)',
-        reason: 'Misaligned pattern cutting by newly enrolled semester-1 trainees',
-        disposition: 'RECYCLED_FOR_PATCHWORK',
-        reportedBy: 'Prof. S. Sinha (KISS-FAC-001)',
-        estimatedLoss: 385,
-        preventionNote: 'Added paper-template dry run before cutting actual handloom fabric.'
+        date: '2026-10-09',
+        itemType: 'FINISHED_GOOD',
+        itemName: 'Handcrafted Cotton Kurti',
+        batchOrSku: 'BATCH-2026-SEW-001',
+        quantityDamaged: 1,
+        unit: 'Units',
+        damageStage: 'QA Inspection (Workshop Lab #1)',
+        reason: 'Needle oil stain & seam tear on 1 practice garment',
+        disposition: 'SCRAP_WRITE_OFF',
+        reportedBy: 'Kavita Priyadarshini Das (KISS-PRD-001)',
+        estimatedLoss: 315,
+        preventionNote: 'Wipe sewing machine presser foot and run scrap cloth strip after oiling.'
     },
     {
         id: 'DMG-2026-03',
         date: '2026-10-10',
         itemType: 'RAW_MATERIAL',
-        itemName: 'Raw Forest Honey & Spices',
-        batchOrSku: 'RM-FOOD-04',
-        quantityDamaged: 1.5,
-        unit: 'Kg',
-        damageStage: 'Warehouse Storage Inspection',
-        reason: 'Seal moisture ingress in 1 storage jar during monsoon humidity spike',
-        disposition: 'DISPOSED_SAFETY_PROTOCOL',
-        reportedBy: 'Warehouse Supervisor',
-        estimatedLoss: 320,
-        preventionNote: 'Transferred all food processing raw stock to airtight food-grade HDPE drums.'
+        itemName: 'Seasoned Bamboo Stalks',
+        batchOrSku: 'PRD-BAM-03',
+        quantityDamaged: 2,
+        unit: 'Stalks',
+        damageStage: 'Warehouse Storage & Seasoning Audit',
+        reason: 'Natural node splitting found during pre-production moisture check',
+        disposition: 'RECYCLED_FOR_PATCHWORK',
+        reportedBy: 'Kavita Priyadarshini Das (KISS-PRD-001)',
+        estimatedLoss: 180,
+        preventionNote: 'Segregated split stalks for small bamboo pen-stand carving exercises by trainees.'
     }
 ];
 
@@ -141,119 +119,80 @@ const DEFAULT_DAMAGE_LOGS = [
 const DEFAULT_EQUIPMENT_LOGS = [
     {
         id: 'EQP-TAIL-01',
-        equipmentName: 'Juki DDL-8700 Industrial Sewing Machine (#01–#15)',
+        equipmentName: 'Juki Industrial Lockstitch Sewing Machines (#01–#15)',
         category: 'WORKSHOP_MACHINERY',
-        workshopLab: 'Tailoring Studio Lab-1',
-        trade: 'Apparels & Tailoring',
+        workshopLab: 'Workshop Lab #1 (Sewing & Textiles)',
+        trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
         totalUnits: 15,
         workingUnits: 14,
         damagedUnits: 1,
         status: 'NEEDS_MAINTENANCE',
-        issueReported: 'Machine #09 bobbin tension assembly jammed during heavy denim practice',
+        issueReported: 'Machine #09 bobbin tension spring requires calibration for thick embroidery thread',
         reportedBy: 'Laxman Majhi (KISS-TRN-2026-001)',
         assignedTechnician: 'Campus Mechanical Maintenance Cell',
-        lastServiced: '2026-10-05'
-    },
-    {
-        id: 'EQP-POT-02',
-        equipmentName: 'Electric Digital Pottery Kiln (1200°C Capacity)',
-        category: 'WORKSHOP_MACHINERY',
-        workshopLab: 'Ceramics & Kiln Studio-2',
-        trade: 'Terracotta & Pottery',
-        totalUnits: 4,
-        workingUnits: 4,
-        damagedUnits: 0,
-        status: 'OPERATIONAL',
-        issueReported: 'All heating elements & thermocouples calibrated and healthy',
-        reportedBy: 'Prof. S. Sinha (KISS-FAC-001)',
-        assignedTechnician: 'Electrical Lab Engineer',
         lastServiced: '2026-10-08'
     },
     {
-        id: 'EQP-KIT-03',
-        equipmentName: 'Trainee Personal Bamboo Carving & Chisel Toolkit + Safety Gloves',
-        category: 'STUDENT_TOOLKIT',
-        workshopLab: 'Bamboo Craft Workshop-3',
-        trade: 'Bamboo & Wood Crafts',
-        totalUnits: 30,
-        workingUnits: 28,
-        damagedUnits: 2,
-        status: 'TOOL_REPLACEMENT_ISSUED',
-        issueReported: '2 bevel chisels blunted/chipped during knot-carving session; replacement blades issued',
-        reportedBy: 'Bikash Soren (KISS-TRN-2026-003)',
-        assignedTechnician: 'Workshop Tool Storekeeper',
+        id: 'EQP-LOOM-02',
+        equipmentName: 'Traditional Sambalpuri Ikat Pit-Looms & Warp Frames',
+        category: 'WORKSHOP_MACHINERY',
+        workshopLab: 'Workshop Lab #2 (Sambalpuri Handloom)',
+        trade: 'Handicrafts & Tribal Art (VOC-ART-102)',
+        totalUnits: 8,
+        workingUnits: 8,
+        damagedUnits: 0,
+        status: 'OPERATIONAL',
+        issueReported: 'All warp beams, shuttles, and reed frames calibrated and 100% operational',
+        reportedBy: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        assignedTechnician: 'Handloom Master Technician',
         lastServiced: '2026-10-09'
     },
     {
-        id: 'EQP-FOOD-04',
-        equipmentName: 'Solar-Assisted Food Dehydrator & Vacuum Sealer Unit',
-        category: 'WORKSHOP_MACHINERY',
-        workshopLab: 'Agro & Food Processing Lab-4',
-        trade: 'Food Processing',
-        totalUnits: 6,
-        workingUnits: 6,
+        id: 'EQP-KIT-03',
+        equipmentName: 'Scholar Bamboo Carving Chisel Toolkit & Protective Aprons',
+        category: 'STUDENT_TOOLKIT',
+        workshopLab: 'Workshop Lab #3 (Bamboo & Handicraft Studio)',
+        trade: 'Handicrafts & Tribal Art (VOC-ART-102)',
+        totalUnits: 25,
+        workingUnits: 25,
         damagedUnits: 0,
         status: 'OPERATIONAL',
-        issueReported: 'Operating at optimal thermal efficiency; FSSAI hygiene cleared',
-        reportedBy: 'Production Supervisor',
-        assignedTechnician: 'Food Tech Lab Assistant',
+        issueReported: 'All 25 student carving toolkits sharpened and safety PPE verified',
+        reportedBy: 'Kavita Priyadarshini Das (KISS-PRD-001)',
+        assignedTechnician: 'Workshop Tool Storekeeper',
         lastServiced: '2026-10-10'
     }
 ];
 
-// Default Seed Data for 360° User Feedback & Grievances (Trainees, Buyers, Trainers)
+// Default Seed Data for 360° User Feedback & Grievances
 const DEFAULT_FEEDBACK_LOGS = [
     {
         id: 'FDB-2026-01',
-        date: '2026-10-08',
+        date: '2026-10-09',
         sourceRole: 'TRAINEE',
+        submittedById: 'KISS-TRN-2026-001',
         submittedBy: 'Laxman Majhi (KISS-TRN-2026-001)',
-        tradeOrProduct: 'Apparels & Tailoring (VOC-SEW-101)',
+        tradeOrProduct: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
         category: 'TRAINING_AND_LAB_FEEDBACK',
         rating: 5,
-        subject: 'Practical Pattern-Making & Industrial Sewing Sessions',
-        message: 'The hands-on demonstration on tribal ikat border alignment helped me complete 5 kurtas without seam puckering. Requesting extra bobbin cases for Machine #09.',
+        subject: 'Practical Pattern-Making & Kurti Embroidery Sessions',
+        message: 'The hands-on demonstration on tribal motif border alignment helped me complete my kurti batch without seam puckering. Requesting extra bobbin cases for Machine #09 in Workshop Lab #1.',
         status: 'RESOLVED',
-        adminResponse: 'Thank you Laxman! Spare bobbin cases have been issued to Tailoring Lab-1 and Machine #09 is scheduled for tension calibration.'
+        adminResponse: 'Thank you Laxman! Spare bobbin cases have been issued to Workshop Lab #1 and Machine #09 is scheduled for tension calibration.'
     },
     {
         id: 'FDB-2026-02',
-        date: '2026-10-09',
+        date: '2026-10-10',
         sourceRole: 'CUSTOMER_BUYER',
-        submittedBy: 'Dr. Ananya Mohanty (Exhibition Buyer - Order #ORD-1002)',
-        tradeOrProduct: 'Terracotta Painted Tribal Lamp Set',
+        submittedById: 'BUYER-POS',
+        submittedBy: 'Showroom Exhibition Visitor (POS Invoice #INV-2026-001)',
+        tradeOrProduct: 'Sambalpuri Handloom Stole (PRD-SAM-02)',
         category: 'PRODUCT_QUALITY_REVIEW',
         rating: 5,
-        subject: 'Authentic Saura Tribal Motif Finishing & Packaging',
-        message: 'Purchased 2 terracotta lamp sets from the KISS Showroom. The intricate hand-painted tribal geometry and eco-friendly cushioning were outstanding!',
-        status: 'PUBLISHED',
-        adminResponse: 'Shared buyer appreciation with Ceramics Studio trainees! Credited bonus quality points to the artisan batch.'
-    },
-    {
-        id: 'FDB-2026-03',
-        date: '2026-10-10',
-        sourceRole: 'TRAINEE',
-        submittedBy: 'Bikash Soren (KISS-TRN-2026-003)',
-        tradeOrProduct: 'Bamboo & Wood Crafts (VOC-BAM-103)',
-        category: 'WORKSHOP_TOOL_GRIEVANCE',
-        rating: 4,
-        subject: 'Request for Finer Sanding Grit & Chisel Sharpening Stone',
-        message: 'During final finishing of bamboo desk organizers, we need 320-grit sandpaper for smoother lacquer polishing.',
-        status: 'OPEN',
-        adminResponse: ''
-    },
-    {
-        id: 'FDB-2026-04',
-        date: '2026-10-10',
-        sourceRole: 'CUSTOMER_BUYER',
-        submittedBy: 'Rajesh Pattnaik (Campus Visitor)',
-        tradeOrProduct: 'Tribal Motif Handwoven Cotton Kurta',
-        category: 'PRODUCT_QUALITY_REVIEW',
-        rating: 4,
-        subject: 'Great Handloom Fabric — Minor Button Stitching Suggestion',
-        message: 'Fabric comfort and tribal embroidery are top-notch. Wooden buttons could be double-knotted for extra durability.',
+        subject: 'Authentic Sambalpuri Ikat Weave & Natural Dye Finish',
+        message: 'Purchased the Sambalpuri Handloom Stole and Handcrafted Cotton Kurti from the KISS Showroom. The intricate tribal ikat weave and fabric quality are outstanding!',
         status: 'RESOLVED',
-        adminResponse: 'Updated QA Checklist in Tailoring Lab-1 to mandate double-cross thread reinforcement on all wooden buttons.'
+        adminResponse: 'Appreciation shared with Workshop Lab #1 & #2 scholars and faculty!'
     }
 ];
 
@@ -261,80 +200,35 @@ const DEFAULT_FEEDBACK_LOGS = [
 const DEFAULT_TRAINER_SKILL_NOTES = [
     {
         id: 'SKN-101',
-        date: '2026-10-09',
+        date: '2026-10-10',
         traineeId: 'KISS-TRN-2026-001',
         traineeName: 'Laxman Majhi',
-        trainerName: 'Prof. S. Sinha (KISS-FAC-001)',
-        trade: 'Apparels & Tailoring',
-        competencyArea: 'Seam Tension & Collar Symmetry',
-        skillObservation: 'Demonstrates strong control on straight lockstitch. While stitching thick ikat borders, reduce presser-foot speed by 15% around collar corners to eliminate thread bunching.',
-        defectPreventionTip: 'Always test stitch tension on a 10cm scrap swatch before starting the final garment batch.',
-        practicalHoursLogged: 156,
-        requiredHours: 180
-    },
-    {
-        id: 'SKN-102',
-        date: '2026-10-10',
-        traineeId: 'KISS-TRN-2026-003',
-        traineeName: 'Bikash Soren',
-        trainerName: 'Prof. S. Sinha (KISS-FAC-001)',
-        trade: 'Bamboo & Wood Crafts',
-        competencyArea: 'Joint Mortising & Natural Lacquer Polish',
-        skillObservation: 'Excellent precision in bamboo node splitting and bevel joinery. Achieved zero-defect pass rate in Batch-2026-003.',
-        defectPreventionTip: 'Ensure bamboo strips are seasoned below 12% moisture content prior to lacquer coating.',
-        practicalHoursLogged: 168,
+        trainerName: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
+        competencyArea: 'Seam Tension, Collar Symmetry & Wooden Button Reinforcement',
+        skillObservation: 'Demonstrates strong control on straight lockstitch during Handcrafted Cotton Kurti production (BATCH-2026-SEW-001). Maintained high precision on tribal neckline embroidery.',
+        defectPreventionTip: 'Always test stitch tension on a 10cm cotton scrap swatch before stitching the final garment collar, and double-knot all 4 wooden handicraft buttons.',
+        practicalHoursLogged: 164,
         requiredHours: 180
     }
 ];
 
-// Default Seed Data for Placements, Apprenticeships (OJT) & Self-Employment Outcomes
+// Default Seed Data for Placements, Apprenticeships (OJT) & Trade Certification
 const DEFAULT_PLACEMENTS = [
     {
         id: 'PLC-2026-01',
         traineeId: 'KISS-TRN-2026-001',
         traineeName: 'Laxman Majhi',
-        tribeAndDistrict: 'Kondh Tribe • Kandhamal, Odisha',
-        trade: 'Apparels & Tailoring',
-        nsqfLevel: 'NSQF Level 4 (Master Sewing Operator)',
+        tribeAndDistrict: 'Scheduled Tribe (KISS Scholar) • Odisha',
+        trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
+        nsqfLevel: 'NSQF Level 4 (Master Sewing & Apparel Technician)',
         attendancePct: 91.5,
-        examScore: 88,
+        examScore: 90,
         certificateNo: 'KISS-NSDC-2026-SEW-001',
         pathwayType: 'APPRENTICESHIP_OJT',
-        partnerOrganization: 'Boyanika / Odisha State Handloom Cooperative & Apparel Park',
+        partnerOrganization: 'Boyanika / Odisha State Handloom & Apparel Cooperative',
         roleOffered: 'Apprentice Garment Quality & Production Technician',
         monthlyStipendOrIncome: 14500,
-        status: 'PLACED_AND_CERTIFIED'
-    },
-    {
-        id: 'PLC-2026-02',
-        traineeId: 'KISS-TRN-2026-002',
-        traineeName: 'Subhashree Murmu',
-        tribeAndDistrict: 'Santal Tribe • Mayurbhanj, Odisha',
-        trade: 'Terracotta & Pottery',
-        nsqfLevel: 'NSQF Level 4 (Ceramics & Tribal Craft Artisan)',
-        attendancePct: 86.0,
-        examScore: 91,
-        certificateNo: 'KISS-NSDC-2026-POT-002',
-        pathwayType: 'SELF_EMPLOYED_SHG',
-        partnerOrganization: 'Tribal Co-operative Marketing Development Federation (TRIFED)',
-        roleOffered: 'Registered Artisan Entrepreneur (Pehchan Card & Mudra Grant)',
-        monthlyStipendOrIncome: 16000,
-        status: 'ENTREPRENEURSHIP_GRANT_APPROVED'
-    },
-    {
-        id: 'PLC-2026-03',
-        traineeId: 'KISS-TRN-2026-003',
-        traineeName: 'Bikash Soren',
-        tribeAndDistrict: 'Saura Tribe • Rayagada, Odisha',
-        trade: 'Bamboo & Wood Crafts',
-        nsqfLevel: 'NSQF Level 3 (Bamboo Utility & Furniture Craftsman)',
-        attendancePct: 84.2,
-        examScore: 85,
-        certificateNo: 'KISS-NSDC-2026-BAM-003',
-        pathwayType: 'INDUSTRY_PLACEMENT',
-        partnerOrganization: 'Odisha Bamboo Development Agency (OBDA) Partner Unit',
-        roleOffered: 'Junior Craft Fabrication Supervisor',
-        monthlyStipendOrIncome: 15200,
         status: 'PLACED_AND_CERTIFIED'
     }
 ];
@@ -345,12 +239,12 @@ const DEFAULT_POS_RETURNS = [
         id: 'RET-2026-01',
         date: '2026-10-09',
         invoiceNumber: 'INV-KISS-2026-001',
-        customerName: 'Smt. Pratibha Das',
-        productName: 'Tribal Motif Handwoven Cotton Kurta',
+        customerName: 'Showroom Walk-in Customer',
+        productName: 'Handcrafted Cotton Kurti (PRD-KURTI-01)',
         quantity: 1,
-        defectReported: 'Loose wooden button stitching on cuff',
+        defectReported: 'Loose wooden handicraft button stitching on sleeve cuff',
         resolutionAction: 'INSTANT_EXCHANGE_AND_SENT_FOR_REWORK',
-        refundOrExchangeValue: 850,
+        refundOrExchangeValue: 650,
         status: 'RESOLVED_EXCHANGED'
     }
 ];
@@ -392,6 +286,11 @@ export const VocationalStore = {
         writeStore(KEYS.QA_INSPECTIONS, list);
         return list;
     },
+    deleteQAInspection: (id) => {
+        const list = readStore(KEYS.QA_INSPECTIONS, DEFAULT_QA_INSPECTIONS).filter(i => i.id !== id);
+        writeStore(KEYS.QA_INSPECTIONS, list);
+        return list;
+    },
 
     getDamageLogs: () => readStore(KEYS.DAMAGE_LOGS, DEFAULT_DAMAGE_LOGS),
     addDamageLog: (log) => {
@@ -402,6 +301,11 @@ export const VocationalStore = {
             ...log
         };
         list.unshift(newEntry);
+        writeStore(KEYS.DAMAGE_LOGS, list);
+        return list;
+    },
+    deleteDamageLog: (id) => {
+        const list = readStore(KEYS.DAMAGE_LOGS, DEFAULT_DAMAGE_LOGS).filter(i => i.id !== id);
         writeStore(KEYS.DAMAGE_LOGS, list);
         return list;
     },
@@ -419,6 +323,11 @@ export const VocationalStore = {
                 ...item
             });
         }
+        writeStore(KEYS.EQUIPMENT_LOGS, list);
+        return list;
+    },
+    deleteEquipmentLog: (id) => {
+        const list = readStore(KEYS.EQUIPMENT_LOGS, DEFAULT_EQUIPMENT_LOGS).filter(i => i.id !== id);
         writeStore(KEYS.EQUIPMENT_LOGS, list);
         return list;
     },
@@ -443,6 +352,11 @@ export const VocationalStore = {
         writeStore(KEYS.FEEDBACK_LOGS, updated);
         return updated;
     },
+    deleteFeedback: (id) => {
+        const list = readStore(KEYS.FEEDBACK_LOGS, DEFAULT_FEEDBACK_LOGS).filter(i => i.id !== id);
+        writeStore(KEYS.FEEDBACK_LOGS, list);
+        return list;
+    },
 
     getTrainerSkillNotes: () => readStore(KEYS.TRAINER_SKILL_NOTES, DEFAULT_TRAINER_SKILL_NOTES),
     addTrainerSkillNote: (note) => {
@@ -456,16 +370,31 @@ export const VocationalStore = {
         writeStore(KEYS.TRAINER_SKILL_NOTES, list);
         return list;
     },
+    deleteTrainerSkillNote: (id) => {
+        const list = readStore(KEYS.TRAINER_SKILL_NOTES, DEFAULT_TRAINER_SKILL_NOTES).filter(i => i.id !== id);
+        writeStore(KEYS.TRAINER_SKILL_NOTES, list);
+        return list;
+    },
 
     getPlacements: () => readStore(KEYS.PLACEMENTS, DEFAULT_PLACEMENTS),
     addPlacement: (record) => {
         const list = readStore(KEYS.PLACEMENTS, DEFAULT_PLACEMENTS);
-        const newRec = {
-            id: `PLC-2026-0${list.length + 1}`,
-            certificateNo: `KISS-NSDC-2026-CERT-00${list.length + 1}`,
-            ...record
-        };
-        list.unshift(newRec);
+        const existingIdx = list.findIndex(p => p.traineeId === record.traineeId);
+        if (existingIdx >= 0) {
+            list[existingIdx] = { ...list[existingIdx], ...record };
+        } else {
+            const newRec = {
+                id: `PLC-2026-0${list.length + 1}`,
+                certificateNo: `KISS-NSDC-2026-CERT-00${list.length + 1}`,
+                ...record
+            };
+            list.unshift(newRec);
+        }
+        writeStore(KEYS.PLACEMENTS, list);
+        return list;
+    },
+    deletePlacement: (id) => {
+        const list = readStore(KEYS.PLACEMENTS, DEFAULT_PLACEMENTS).filter(i => i.id !== id);
         writeStore(KEYS.PLACEMENTS, list);
         return list;
     },
@@ -480,6 +409,11 @@ export const VocationalStore = {
             ...claim
         };
         list.unshift(newClaim);
+        writeStore(KEYS.POS_RETURNS, list);
+        return list;
+    },
+    deletePosReturn: (id) => {
+        const list = readStore(KEYS.POS_RETURNS, DEFAULT_POS_RETURNS).filter(i => i.id !== id);
         writeStore(KEYS.POS_RETURNS, list);
         return list;
     },

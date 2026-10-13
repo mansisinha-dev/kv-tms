@@ -401,7 +401,7 @@ export default function SalesPOS({ onNavigateTab }) {
                                 title="Record customer product quality rating & review"
                             >
                                 <ShieldCheck size={14} className="text-[#006837]" />
-                                <span>Buyer Quality Reviews (4.8★)</span>
+                                <span>Buyer Quality Reviews</span>
                             </button>
                         </>
                     )}

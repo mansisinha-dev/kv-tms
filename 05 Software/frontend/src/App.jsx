@@ -29,34 +29,34 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     if (paramRole === 'trainer') {
       return {
-        fullName: "Prof. S Sinha",
-        name: "Prof. S Sinha",
-        username: "KISS-FAC-002",
-        collegeId: "KISS-FAC-002",
+        fullName: "Prof. Sanatan Marndi",
+        name: "Prof. Sanatan Marndi",
+        username: "KISS-FAC-001",
+        collegeId: "KISS-FAC-001",
         role: "ROLE_TRAINER",
-        email: "kiss-fac-002@kiss.ac.in",
+        email: "sanatan.marndi@kiss.ac.in",
         token: "demo_jwt_token"
       };
     }
     if (paramRole === 'trainee') {
       return {
-        fullName: "Bikash Soren",
-        name: "Bikash Soren",
-        username: "KISS-TRN-2026-003",
-        collegeId: "KISS-TRN-2026-003",
+        fullName: "Laxman Majhi",
+        name: "Laxman Majhi",
+        username: "KISS-TRN-2026-001",
+        collegeId: "KISS-TRN-2026-001",
         role: "ROLE_TRAINEE",
-        email: "bikash.soren@kiss.ac.in",
+        email: "laxman.majhi@kiss.ac.in",
         token: "demo_jwt_token"
       };
     }
     if (paramRole === 'production') {
       return {
-        fullName: "Rahul Verma",
-        name: "Rahul Verma",
-        username: "KISS-PRD-002",
-        collegeId: "KISS-PRD-002",
+        fullName: "Kavita Priyadarshini Das",
+        name: "Kavita Priyadarshini Das",
+        username: "KISS-PRD-001",
+        collegeId: "KISS-PRD-001",
         role: "ROLE_PRODUCTION_MANAGER",
-        email: "kiss-prd-002@kiss.ac.in",
+        email: "kavita.das@kiss.ac.in",
         token: "demo_jwt_token"
       };
     }
@@ -66,12 +66,12 @@ export default function App() {
     }
     if (paramView === 'portal') {
       return {
-        fullName: "Mansi Sinha",
-        name: "Mansi Sinha",
-        username: "admin_mansi",
+        fullName: "Dr. Debashis Mohanty",
+        name: "Dr. Debashis Mohanty",
+        username: "KISS-ADM-001",
         collegeId: "KISS-ADM-001",
         role: "ROLE_ADMIN",
-        email: "admin.testing@kiss.ac.in",
+        email: "debashis.mohanty@kiss.ac.in",
         token: "demo_jwt_token"
       };
     }

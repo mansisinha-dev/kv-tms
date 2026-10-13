@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
     ShieldCheck,
     AlertTriangle,
     Wrench,
     CheckCircle2,
-    XCircle,
     RefreshCw,
     PlusCircle,
     ClipboardCheck,
@@ -12,12 +12,18 @@ import {
     Hammer,
     Sliders,
     RotateCcw,
-    Award,
-    Layers
+    Trash2
 } from 'lucide-react';
 import { VocationalStore } from '../utils/vocationalStore';
 
+const API_BASE_URL = 'http://localhost:8080/api/v1';
+
 export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-checklist' }) {
+    const rawRole = (currentUser?.role || currentUser?.username || '').toUpperCase();
+    const isAdmin = rawRole.includes('ADMIN') || rawRole.includes('ADM');
+    const myFullName = currentUser?.fullName || currentUser?.name || 'Kavita Priyadarshini Das';
+    const myCollegeId = currentUser?.collegeId || currentUser?.username || 'KISS-PRD-001';
+
     const [subTab, setSubTab] = useState(initialSubTab);
     const [qaList, setQaList] = useState(() => VocationalStore.getQAInspections());
     const [damageList, setDamageList] = useState(() => VocationalStore.getDamageLogs());
@@ -25,13 +31,20 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
     const [posReturns, setPosReturns] = useState(() => VocationalStore.getPosReturns());
     const [toast, setToast] = useState('');
 
+    // Live Backend Entities: Batches, Products, Raw Materials, Workshops
+    const [liveBatches, setLiveBatches] = useState([]);
+    const [liveProducts, setLiveProducts] = useState([]);
+    const [liveRawMaterials, setLiveRawMaterials] = useState([]);
+    const [liveWorkshops, setLiveWorkshops] = useState([]);
+    const [syncingLive, setSyncingLive] = useState(false);
+
     // Form state: New Multi-Point QA Inspection
     const [showQaForm, setShowQaForm] = useState(false);
     const [qaForm, setQaForm] = useState({
-        batchNumber: 'BATCH-2026-004',
-        productName: 'Handwoven Tribal Ikat Stole',
-        trade: 'Apparels & Tailoring',
-        workshopName: 'Tailoring Studio Lab-1',
+        batchNumber: 'BATCH-2026-SEW-002',
+        productName: 'Handcrafted Cotton Kurti',
+        trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
+        workshopName: 'Workshop Lab #1 (Sewing & Textiles)',
         producedQty: 25,
         passedQty: 22,
         reworkQty: 2,
@@ -40,41 +53,83 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
         craftsmanship: 9,
         surfaceFinish: 8,
         packagingHygiene: 10,
-        defectCategory: 'Minor Weft Thread Tension Variance',
-        correctiveAction: '2 stoles assigned for border re-hemming in Afternoon Shift Batch-B; 1 unit logged as loom setup scrap.'
+        defectCategory: 'Minor Collar Seam Tension Variance',
+        correctiveAction: '2 kurtis returned to Workshop Lab #1 for collar re-stitching; 1 unit logged as pattern-cutting practice scrap.'
     });
 
     // Form state: Report Damage / Wastage
     const [showDamageForm, setShowDamageForm] = useState(false);
     const [damageForm, setDamageForm] = useState({
-        itemType: 'FINISHED_GOOD',
-        itemName: 'Terracotta Painted Tribal Lamp Set',
-        batchOrSku: 'BATCH-2026-004',
-        quantityDamaged: 2,
-        unit: 'Units',
-        damageStage: 'Kiln Firing & Cooling (Workshop)',
-        reason: 'Hairline crack during high-temperature firing by beginner cohort',
+        itemType: 'RAW_MATERIAL',
+        itemName: 'Pure Cotton Fabric',
+        batchOrSku: 'BATCH-2026-SEW-002',
+        quantityDamaged: 2.0,
+        unit: 'Meters',
+        damageStage: 'Pattern Cutting Practice (Workshop Lab #1)',
+        reason: 'Sleeve pattern cutting misalignment during scholar practice session',
         disposition: 'RECYCLED_FOR_PATCHWORK',
-        estimatedLoss: 350,
-        preventionNote: 'Pre-heat clay moulds for 30 mins to remove residual moisture before kiln loading.'
+        estimatedLoss: 240,
+        preventionNote: 'Verify brown-paper pattern alignment before cutting Pure Cotton Fabric.'
+    });
+
+    // Form state: Record POS Customer Defective Return / Exchange
+    const [showReturnForm, setShowReturnForm] = useState(false);
+    const [returnForm, setReturnForm] = useState({
+        invoiceNumber: 'INV-KISS-2026-002',
+        customerName: 'Showroom Customer',
+        productName: 'Handcrafted Cotton Kurti (PRD-KURTI-01)',
+        quantity: 1,
+        defectReported: 'Minor cuff button stitching loose',
+        resolutionAction: 'INSTANT_EXCHANGE_AND_SENT_FOR_REWORK',
+        refundOrExchangeValue: 650
     });
 
     // Form state: Report Machine / Toolkit Issue
     const [showEquipForm, setShowEquipForm] = useState(false);
     const [equipForm, setEquipForm] = useState({
-        equipmentName: 'Juki DDL-8700 Industrial Sewing Machine #12',
+        equipmentName: 'Juki Industrial Lockstitch Sewing Machines (#01–#15)',
         category: 'WORKSHOP_MACHINERY',
-        workshopLab: 'Tailoring Studio Lab-1',
-        trade: 'Apparels & Tailoring',
+        workshopLab: 'Workshop Lab #1 (Sewing & Textiles)',
+        trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
         totalUnits: 15,
         workingUnits: 14,
         damagedUnits: 1,
         status: 'NEEDS_MAINTENANCE',
-        issueReported: 'Needle guard alignment shifted during thick canvas stitching',
+        issueReported: 'Needle guard alignment shifted during thick cotton border stitching',
         assignedTechnician: 'Campus Mechanical Maintenance Cell'
     });
 
+    const loadLiveProductionAndInventory = async () => {
+        setSyncingLive(true);
+        try {
+            const [runsRes, prodRes, rmRes, wsRes] = await Promise.allSettled([
+                axios.get(`${API_BASE_URL}/production/runs`),
+                axios.get(`${API_BASE_URL}/inventory/products`),
+                axios.get(`${API_BASE_URL}/inventory/raw-materials`),
+                axios.get(`${API_BASE_URL}/production/workshops`)
+            ]);
+
+            if (runsRes.status === 'fulfilled' && Array.isArray(runsRes.value.data)) {
+                setLiveBatches(runsRes.value.data);
+            }
+            if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value.data)) {
+                setLiveProducts(prodRes.value.data);
+            }
+            if (rmRes.status === 'fulfilled' && Array.isArray(rmRes.value.data)) {
+                setLiveRawMaterials(rmRes.value.data);
+            }
+            if (wsRes.status === 'fulfilled' && Array.isArray(wsRes.value.data)) {
+                setLiveWorkshops(wsRes.value.data);
+            }
+        } catch (e) {
+            console.warn('Live production/inventory sync fallback:', e);
+        } finally {
+            setSyncingLive(false);
+        }
+    };
+
     useEffect(() => {
+        loadLiveProductionAndInventory();
         const syncAll = () => {
             setQaList(VocationalStore.getQAInspections());
             setDamageList(VocationalStore.getDamageLogs());
@@ -90,6 +145,54 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
         setTimeout(() => setToast(''), 4000);
     };
 
+    // Auto-populate QA form when user selects a live production batch
+    const handleSelectBatchForQA = (batchNo) => {
+        const found = liveBatches.find(b => b.batchNumber === batchNo);
+        if (found) {
+            const prodName = found.product?.name || found.productName || 'Handcrafted Cotton Kurti';
+            const courseName = found.product?.course
+                ? `${found.product.course.name} (${found.product.course.code})`
+                : 'Sewing & Apparel Manufacturing (VOC-SEW-101)';
+            const qty = Number(found.targetQuantity || found.completedQuantity || 15);
+            const wsMatch = liveWorkshops.find(w => w.productName === prodName || w.sku === found.product?.sku);
+            setQaForm(prev => ({
+                ...prev,
+                batchNumber: batchNo,
+                productName: prodName,
+                trade: courseName,
+                workshopName: wsMatch?.name || prev.workshopName,
+                producedQty: qty,
+                passedQty: Math.max(0, qty - 2),
+                reworkQty: Math.min(2, qty),
+                scrapQty: 0
+            }));
+        } else {
+            setQaForm(prev => ({ ...prev, batchNumber: batchNo }));
+        }
+    };
+
+    // Auto-populate Damage form when user switches stock category or item
+    const handleSelectDamageItem = (itemName) => {
+        if (damageForm.itemType === 'RAW_MATERIAL') {
+            const rm = liveRawMaterials.find(r => r.name === itemName);
+            setDamageForm(prev => ({
+                ...prev,
+                itemName,
+                unit: rm?.unitOfMeasure || prev.unit,
+                estimatedLoss: rm?.unitCost ? Math.round(rm.unitCost * Number(prev.quantityDamaged || 1)) : prev.estimatedLoss
+            }));
+        } else {
+            const pr = liveProducts.find(p => p.name === itemName);
+            setDamageForm(prev => ({
+                ...prev,
+                itemName,
+                batchOrSku: pr?.sku || prev.batchOrSku,
+                unit: 'Units',
+                estimatedLoss: pr?.sellingPrice ? Math.round(pr.sellingPrice * 0.5 * Number(prev.quantityDamaged || 1)) : prev.estimatedLoss
+            }));
+        }
+    };
+
     const handleQaSubmit = (e) => {
         e.preventDefault();
         const passed = Number(qaForm.passedQty) || 0;
@@ -102,7 +205,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
             productName: qaForm.productName,
             trade: qaForm.trade,
             workshopName: qaForm.workshopName,
-            inspectorName: `${currentUser?.fullName || 'QA Inspector'} (${currentUser?.collegeId || 'KISS-QA'})`,
+            inspectorName: `${myFullName} (${myCollegeId})`,
             targetQty: total,
             producedQty: total,
             passedQty: passed,
@@ -119,7 +222,6 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
             status: rework > 0 ? 'CLEARED_WITH_PARTIAL_REWORK' : 'CLEARED_FOR_SALE'
         });
 
-        // Also auto-log scrap if scrapQty > 0
         if (scrap > 0) {
             VocationalStore.addDamageLog({
                 itemType: 'FINISHED_GOOD',
@@ -130,8 +232,8 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                 damageStage: `QA Inspection (${qaForm.workshopName})`,
                 reason: qaForm.defectCategory,
                 disposition: 'SCRAP_WRITE_OFF',
-                reportedBy: currentUser?.fullName || 'QA Inspector',
-                estimatedLoss: scrap * 220,
+                reportedBy: `${myFullName} (${myCollegeId})`,
+                estimatedLoss: scrap * 300,
                 preventionNote: qaForm.correctiveAction
             });
         }
@@ -149,7 +251,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
             passedQty: updatedPassed,
             reworkQty: 0,
             status: 'CLEARED_FOR_SALE',
-            correctiveAction: `${qaItem.correctiveAction} [✓ Rework completed & re-verified on ${new Date().toISOString().slice(0, 10)}]`
+            correctiveAction: `${qaItem.correctiveAction} [✓ Rework completed & re-verified by ${myFullName} on ${new Date().toISOString().slice(0, 10)}]`
         });
         setQaList(VocationalStore.getQAInspections());
         notify(`All reworked units in ${qaItem.batchNumber} re-inspected and cleared for showroom sale!`);
@@ -161,11 +263,23 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
             ...damageForm,
             quantityDamaged: Number(damageForm.quantityDamaged),
             estimatedLoss: Number(damageForm.estimatedLoss),
-            reportedBy: `${currentUser?.fullName || 'Workshop Staff'} (${currentUser?.collegeId || 'KISS'})`
+            reportedBy: `${myFullName} (${myCollegeId})`
         });
         setDamageList(VocationalStore.getDamageLogs());
         setShowDamageForm(false);
         notify(`Damage/Wastage report logged for ${damageForm.itemName} (${damageForm.quantityDamaged} ${damageForm.unit}).`);
+    };
+
+    const handleReturnSubmit = (e) => {
+        e.preventDefault();
+        VocationalStore.addPosReturn({
+            ...returnForm,
+            quantity: Number(returnForm.quantity),
+            refundOrExchangeValue: Number(returnForm.refundOrExchangeValue)
+        });
+        setPosReturns(VocationalStore.getPosReturns());
+        setShowReturnForm(false);
+        notify(`POS Customer Return / Exchange recorded for ${returnForm.invoiceNumber}.`);
     };
 
     const handleEquipSubmit = (e) => {
@@ -175,7 +289,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
             totalUnits: Number(equipForm.totalUnits),
             workingUnits: Number(equipForm.workingUnits),
             damagedUnits: Number(equipForm.damagedUnits),
-            reportedBy: `${currentUser?.fullName || 'Faculty/Staff'} (${currentUser?.collegeId || 'KISS'})`
+            reportedBy: `${myFullName} (${myCollegeId})`
         });
         setEquipmentList(VocationalStore.getEquipmentLogs());
         setShowEquipForm(false);
@@ -198,8 +312,24 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
     const totalInspected = qaList.reduce((acc, q) => acc + (Number(q.producedQty) || 0), 0);
     const totalPassed = qaList.reduce((acc, q) => acc + (Number(q.passedQty) || 0), 0);
     const totalRework = qaList.reduce((acc, q) => acc + (Number(q.reworkQty) || 0), 0);
-    const totalScrap = qaList.reduce((acc, q) => acc + (Number(q.scrapQty) || 0), 0);
     const firstPassYield = totalInspected > 0 ? ((totalPassed / totalInspected) * 100).toFixed(1) : '100.0';
+
+    // Dropdown options from live database with fallback to DataInitializer entities
+    const batchOptions = liveBatches.length > 0
+        ? liveBatches.map(b => b.batchNumber)
+        : ['BATCH-2026-SEW-001', 'BATCH-2026-SAM-001', 'BATCH-2026-SEW-002'];
+
+    const productOptions = liveProducts.length > 0
+        ? liveProducts.map(p => p.name)
+        : ['Handcrafted Cotton Kurti', 'Sambalpuri Handloom Stole', 'Tribal Bamboo Table Lamp'];
+
+    const rawMaterialOptions = liveRawMaterials.length > 0
+        ? liveRawMaterials.map(r => r.name)
+        : ['Pure Cotton Fabric', 'Wooden Handicraft Buttons', 'Handloom Silk Yarn', 'Organic Herbal Dyes', 'Seasoned Bamboo Stalks', 'Natural Lacquer & Varnish'];
+
+    const workshopOptions = liveWorkshops.length > 0
+        ? liveWorkshops.map(w => w.name)
+        : ['Workshop Lab #1 (Sewing & Textiles)', 'Workshop Lab #2 (Sambalpuri Handloom)', 'Workshop Lab #3 (Bamboo & Handicraft Studio)'];
 
     return (
         <div className="space-y-6">
@@ -215,7 +345,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                             Vocational Quality Assurance, Defect & Workshop Asset Hub
                         </h2>
                         <p className="text-xs text-emerald-100 mt-1 max-w-2xl">
-                            Unit-level quality grading (Grade-A Pass vs. Rework vs. Scrap), warehouse damage/spoilage write-offs, POS defective return claims, and training lab machine/toolkit maintenance.
+                            Unit-level quality grading (Grade-A Pass vs. Rework vs. Scrap), warehouse damage/spoilage write-offs, POS defective return claims, and training lab machine/toolkit maintenance synced with live batches.
                         </p>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full md:w-auto text-center">
@@ -247,42 +377,54 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
             )}
 
             {/* Navigation Pill Bar */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setSubTab('qa-checklist')}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                            subTab === 'qa-checklist'
+                                ? 'bg-[#006837] text-white shadow-sm'
+                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                    >
+                        <ClipboardCheck size={15} />
+                        1. Multi-Point QA & Rework Split ({qaList.length})
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSubTab('damage-scrap')}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                            subTab === 'damage-scrap'
+                                ? 'bg-[#006837] text-white shadow-sm'
+                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                    >
+                        <PackageX size={15} />
+                        2. Defect, Damage, Scrap & POS Returns ({damageList.length + posReturns.length})
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setSubTab('equipment-toolkits')}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                            subTab === 'equipment-toolkits'
+                                ? 'bg-[#006837] text-white shadow-sm'
+                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                    >
+                        <Wrench size={15} />
+                        3. Lab Machinery & Student Toolkits ({equipmentList.length})
+                    </button>
+                </div>
+
                 <button
                     type="button"
-                    onClick={() => setSubTab('qa-checklist')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                        subTab === 'qa-checklist'
-                            ? 'bg-[#006837] text-white shadow-sm'
-                            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
+                    onClick={loadLiveProductionAndInventory}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                    title="Sync live production batches and warehouse inventory"
                 >
-                    <ClipboardCheck size={15} />
-                    1. Multi-Point QA & Rework Split ({qaList.length})
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setSubTab('damage-scrap')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                        subTab === 'damage-scrap'
-                            ? 'bg-[#006837] text-white shadow-sm'
-                            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
-                >
-                    <PackageX size={15} />
-                    2. Defect, Damage, Scrap & POS Returns ({damageList.length + posReturns.length})
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setSubTab('equipment-toolkits')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                        subTab === 'equipment-toolkits'
-                            ? 'bg-[#006837] text-white shadow-sm'
-                            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
-                >
-                    <Wrench size={15} />
-                    3. Lab Machinery & Student Toolkits ({equipmentList.length})
+                    <RefreshCw size={13} className={syncingLive ? 'animate-spin text-[#006837]' : ''} />
+                    Sync Live Batches
                 </button>
             </div>
 
@@ -298,7 +440,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 Unit-Level Quality Assurance & Rework Inspection Ledger
                             </h3>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Instead of binary all-or-nothing batch rejection, inspect and split each batch into Grade-A Passed, Reworkable, and Damaged/Scrap units.
+                                Select any live production batch to inspect and split into Grade-A Passed, Reworkable, and Damaged/Scrap units.
                             </p>
                         </div>
                         <button
@@ -314,28 +456,32 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                     {showQaForm && (
                         <form onSubmit={handleQaSubmit} className="bg-emerald-50/60 border-2 border-emerald-200 rounded-2xl p-5 space-y-4 text-xs">
                             <h4 className="font-bold text-[#006837] text-sm flex items-center gap-2 border-b border-emerald-200 pb-2">
-                                <Sliders size={15} /> Record Multi-Point Batch Quality Inspection (Unit-Level Split)
+                                <Sliders size={15} /> Record Multi-Point Batch Quality Inspection (Live Production Batches)
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                 <div>
-                                    <label className="block font-bold text-slate-700 mb-1">Batch Code</label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <label className="block font-bold text-slate-700 mb-1">Select Production Batch</label>
+                                    <select
                                         value={qaForm.batchNumber}
-                                        onChange={e => setQaForm({ ...qaForm, batchNumber: e.target.value })}
-                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
-                                    />
+                                        onChange={e => handleSelectBatchForQA(e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-mono font-bold"
+                                    >
+                                        {batchOptions.map(b => (
+                                            <option key={b} value={b}>{b}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block font-bold text-slate-700 mb-1">Craft / Product Name</label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <select
                                         value={qaForm.productName}
                                         onChange={e => setQaForm({ ...qaForm, productName: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
-                                    />
+                                    >
+                                        {productOptions.map(p => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block font-bold text-slate-700 mb-1">Vocational Trade</label>
@@ -344,22 +490,23 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                         onChange={e => setQaForm({ ...qaForm, trade: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                     >
-                                        <option>Apparels & Tailoring</option>
-                                        <option>Terracotta & Pottery</option>
-                                        <option>Bamboo & Wood Crafts</option>
-                                        <option>Food Processing</option>
-                                        <option>Tribal Handloom Weaving</option>
+                                        <option>Sewing & Apparel Manufacturing (VOC-SEW-101)</option>
+                                        <option>Handicrafts & Tribal Art (VOC-ART-102)</option>
+                                        <option>Food Processing & Preservation (VOC-FOD-103)</option>
+                                        <option>Carpentry & Woodwork (VOC-CAR-104)</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block font-bold text-slate-700 mb-1">Training Studio / Lab</label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <select
                                         value={qaForm.workshopName}
                                         onChange={e => setQaForm({ ...qaForm, workshopName: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
-                                    />
+                                    >
+                                        {workshopOptions.map(w => (
+                                            <option key={w} value={w}>{w}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
@@ -427,7 +574,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                         type="text"
                                         value={qaForm.defectCategory}
                                         onChange={e => setQaForm({ ...qaForm, defectCategory: e.target.value })}
-                                        placeholder="e.g. Collar seam tension variance / Kiln glaze bubble"
+                                        placeholder="e.g. Collar seam tension variance / Lacquer finish bubble"
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                     />
                                 </div>
@@ -490,6 +637,20 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                                     <RotateCcw size={12} /> Complete Rework & Clear ({item.reworkQty})
                                                 </button>
                                             )}
+                                            {isAdmin && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        VocationalStore.deleteQAInspection(item.id);
+                                                        setQaList(VocationalStore.getQAInspections());
+                                                        notify(`QA Inspection ${item.id} removed.`);
+                                                    }}
+                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                                    title="Delete QA record"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -544,58 +705,84 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                         <div>
                             <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                                 <PackageX size={18} className="text-rose-600" />
-                                Warehouse Damage, Kiln Breakage, Practice Scrap & Customer Returns
+                                Warehouse Damage, Workshop Scrap & POS Customer Defective Returns
                             </h3>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Tracks damaged raw materials, broken/spoiled finished crafts, training material wastage, and POS customer defective product claims.
+                                Tracks damaged raw materials (WH-1), broken/spoiled finished crafts (WH-2), training material wastage, and POS customer defective product claims.
                             </p>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowDamageForm(!showDamageForm)}
-                            className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
-                        >
-                            <PlusCircle size={14} />
-                            {showDamageForm ? 'Close Form' : 'Log Damaged Stock / Training Scrap'}
-                        </button>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                                type="button"
+                                onClick={() => setShowReturnForm(!showReturnForm)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                                <RotateCcw size={13} />
+                                {showReturnForm ? 'Close Return Form' : 'Record POS Customer Return'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowDamageForm(!showDamageForm)}
+                                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                                <PlusCircle size={14} />
+                                {showDamageForm ? 'Close Form' : 'Log Damaged Stock / Scrap'}
+                            </button>
+                        </div>
                     </div>
 
                     {showDamageForm && (
                         <form onSubmit={handleDamageSubmit} className="bg-rose-50/60 border-2 border-rose-200 rounded-2xl p-5 space-y-4 text-xs">
                             <h4 className="font-bold text-rose-800 text-sm flex items-center gap-2 border-b border-rose-200 pb-2">
-                                <AlertTriangle size={15} /> Report Damaged Raw Material, Broken Craft, or Training Scrap
+                                <AlertTriangle size={15} /> Report Damaged Raw Material, Broken Craft, or Training Scrap (Live Inventory)
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label className="block font-bold text-slate-700 mb-1">Stock Category</label>
                                     <select
                                         value={damageForm.itemType}
-                                        onChange={e => setDamageForm({ ...damageForm, itemType: e.target.value })}
+                                        onChange={e => {
+                                            const nextType = e.target.value;
+                                            const defaultItem = nextType === 'RAW_MATERIAL' ? rawMaterialOptions[0] : productOptions[0];
+                                            setDamageForm({
+                                                ...damageForm,
+                                                itemType: nextType,
+                                                itemName: defaultItem,
+                                                unit: nextType === 'RAW_MATERIAL' ? 'Meters' : 'Units'
+                                            });
+                                        }}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                     >
-                                        <option value="FINISHED_GOOD">Finished Craft Product (WH-2)</option>
                                         <option value="RAW_MATERIAL">Raw Material Store (WH-1)</option>
+                                        <option value="FINISHED_GOOD">Finished Craft Product (WH-2)</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block font-bold text-slate-700 mb-1">Material / Product Name</label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <label className="block font-bold text-slate-700 mb-1">Select Material / Product</label>
+                                    <select
                                         value={damageForm.itemName}
-                                        onChange={e => setDamageForm({ ...damageForm, itemName: e.target.value })}
-                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
-                                    />
+                                        onChange={e => handleSelectDamageItem(e.target.value)}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-semibold"
+                                    >
+                                        {(damageForm.itemType === 'RAW_MATERIAL' ? rawMaterialOptions : productOptions).map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
-                                    <label className="block font-bold text-slate-700 mb-1">Batch Code / Material SKU</label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <label className="block font-bold text-slate-700 mb-1">Batch Code / SKU Reference</label>
+                                    <select
                                         value={damageForm.batchOrSku}
                                         onChange={e => setDamageForm({ ...damageForm, batchOrSku: e.target.value })}
-                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
-                                    />
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-mono"
+                                    >
+                                        {batchOptions.map(b => (
+                                            <option key={b} value={b}>{b}</option>
+                                        ))}
+                                        <option value="PRD-KURTI-01">PRD-KURTI-01</option>
+                                        <option value="PRD-SAM-02">PRD-SAM-02</option>
+                                        <option value="PRD-BAM-03">PRD-BAM-03</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -619,10 +806,12 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                         onChange={e => setDamageForm({ ...damageForm, unit: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                     >
-                                        <option>Units</option>
                                         <option>Meters</option>
+                                        <option>Units</option>
+                                        <option>Pieces</option>
                                         <option>Kg</option>
-                                        <option>Liters</option>
+                                        <option>Litres</option>
+                                        <option>Stalks</option>
                                     </select>
                                 </div>
                                 <div>
@@ -632,9 +821,10 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                         onChange={e => setDamageForm({ ...damageForm, damageStage: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                     >
-                                        <option>Kiln Firing & Cooling (Workshop)</option>
-                                        <option>Pattern Cutting Practice (Training Lab)</option>
-                                        <option>Warehouse Storage Inspection</option>
+                                        <option>Pattern Cutting Practice (Workshop Lab #1)</option>
+                                        <option>Handloom Weaving & Dyeing (Workshop Lab #2)</option>
+                                        <option>Bamboo Carving & Lacquer (Workshop Lab #3)</option>
+                                        <option>Warehouse Storage & Seasoning Audit</option>
                                         <option>Showroom Transit & Handling</option>
                                     </select>
                                 </div>
@@ -648,7 +838,6 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                         <option value="RECYCLED_FOR_PATCHWORK">Recycled for Trainee Practice / Patchwork</option>
                                         <option value="SENT_FOR_REWORK">Sent Back to Studio for Repair</option>
                                         <option value="SCRAP_WRITE_OFF">Scrap Write-Off (Deducted from Inventory)</option>
-                                        <option value="DISPOSED_SAFETY_PROTOCOL">Disposed per Food/Hygiene Protocol</option>
                                     </select>
                                 </div>
                             </div>
@@ -683,6 +872,85 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                         </form>
                     )}
 
+                    {showReturnForm && (
+                        <form onSubmit={handleReturnSubmit} className="bg-indigo-50/60 border-2 border-indigo-200 rounded-2xl p-5 space-y-4 text-xs">
+                            <h4 className="font-bold text-indigo-900 text-sm flex items-center gap-2 border-b border-indigo-200 pb-2">
+                                <RotateCcw size={15} /> Log Showroom POS Customer Defective Product Return / Exchange
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">POS Invoice Number</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={returnForm.invoiceNumber}
+                                        onChange={e => setReturnForm({ ...returnForm, invoiceNumber: e.target.value })}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Customer Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={returnForm.customerName}
+                                        onChange={e => setReturnForm({ ...returnForm, customerName: e.target.value })}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Returned Product</label>
+                                    <select
+                                        value={returnForm.productName}
+                                        onChange={e => setReturnForm({ ...returnForm, productName: e.target.value })}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
+                                    >
+                                        {productOptions.map(p => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Resolution Action</label>
+                                    <select
+                                        value={returnForm.resolutionAction}
+                                        onChange={e => setReturnForm({ ...returnForm, resolutionAction: e.target.value })}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
+                                    >
+                                        <option value="INSTANT_EXCHANGE_AND_SENT_FOR_REWORK">Instant Exchange & Sent for Studio Rework</option>
+                                        <option value="FULL_REFUND_AND_SCRAP_WRITE_OFF">Full Refund & Scrap Write-Off</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="sm:col-span-2">
+                                    <label className="block font-bold text-slate-700 mb-1">Reported Product Defect</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={returnForm.defectReported}
+                                        onChange={e => setReturnForm({ ...returnForm, defectReported: e.target.value })}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Exchange / Refund Value (₹)</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={returnForm.refundOrExchangeValue}
+                                        onChange={e => setReturnForm({ ...returnForm, refundOrExchangeValue: e.target.value })}
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <button type="button" onClick={() => setShowReturnForm(false)} className="px-4 py-1.5 bg-slate-200 text-slate-700 font-bold rounded-lg">Cancel</button>
+                                <button type="submit" className="px-5 py-1.5 bg-indigo-700 text-white font-bold rounded-lg shadow">Save POS Return Claim</button>
+                            </div>
+                        </form>
+                    )}
+
                     {/* Damage & Wastage Cards */}
                     <div className="space-y-3">
                         {damageList.map(dmg => (
@@ -708,12 +976,26 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                     </p>
                                 </div>
                                 <div className="md:text-right flex flex-col justify-between shrink-0 border-t md:border-t-0 pt-2 md:pt-0">
-                                    <div>
+                                    <div className="flex items-center justify-end gap-2">
                                         <span className="text-sm font-black text-rose-700">
                                             -{dmg.quantityDamaged} {dmg.unit}
                                         </span>
-                                        <p className="text-[10px] text-slate-400">Reported on {dmg.date} by {dmg.reportedBy}</p>
+                                        {isAdmin && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    VocationalStore.deleteDamageLog(dmg.id);
+                                                    setDamageList(VocationalStore.getDamageLogs());
+                                                    notify(`Damage log ${dmg.id} deleted.`);
+                                                }}
+                                                className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                                                title="Delete damage log"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        )}
                                     </div>
+                                    <p className="text-[10px] text-slate-400">Reported on {dmg.date} by {dmg.reportedBy}</p>
                                     <span className="inline-block mt-2 text-[10px] font-bold bg-slate-800 text-white px-2.5 py-1 rounded">
                                         Action: {dmg.disposition.replace(/_/g, ' ')}
                                     </span>
@@ -743,7 +1025,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                         <span className="bg-emerald-100 text-emerald-800 font-bold text-[10px] px-2.5 py-1 rounded">
                                             {ret.resolutionAction.replace(/_/g, ' ')}
                                         </span>
-                                        <p className="text-[10px] text-slate-400 mt-1">Date: {ret.date}</p>
+                                        <p className="text-[10px] text-slate-400 mt-1">Date: {ret.date} • Value: ₹{ret.refundOrExchangeValue}</p>
                                     </div>
                                 </div>
                             ))}
@@ -764,7 +1046,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 Vocational Workshop Machinery & Trainee Toolkit Health Register
                             </h3>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Track operational status of sewing machines, looms, kilns, food dehydrators, and student personal toolkits across all training studios.
+                                Track operational status of sewing machines, handlooms, bamboo carving kits, and safety PPE across all KISS workshops.
                             </p>
                         </div>
                         <button
@@ -806,13 +1088,15 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 </div>
                                 <div>
                                     <label className="block font-bold text-slate-700 mb-1">Studio Lab Location</label>
-                                    <input
-                                        type="text"
-                                        required
+                                    <select
                                         value={equipForm.workshopLab}
                                         onChange={e => setEquipForm({ ...equipForm, workshopLab: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
-                                    />
+                                    >
+                                        {workshopOptions.map(w => (
+                                            <option key={w} value={w}>{w}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 
@@ -911,7 +1195,7 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 </div>
 
                                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500">
-                                    <span>Last Serviced: <strong>{eq.lastServiced}</strong></span>
+                                    <span>Last Serviced: <strong>{eq.lastServiced}</strong> • Reported by: {eq.reportedBy}</span>
                                     {eq.damagedUnits > 0 && (
                                         <button
                                             type="button"
