@@ -245,12 +245,6 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
                     icon: BookOpen
                 },
                 {
-                    id: 'qa-defects',
-                    label: 'Studio QA, Defects & Toolkits',
-                    desc: 'Batch defects & machine repair',
-                    icon: ShieldCheck
-                },
-                {
                     id: 'feedback-hub',
                     label: 'Skill Coaching & Feedback',
                     desc: 'Trainee coaching & lab reviews',

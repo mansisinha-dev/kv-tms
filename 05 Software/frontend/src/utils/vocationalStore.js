@@ -6,14 +6,14 @@
 // ============================================================================
 
 const KEYS = {
-    QA_INSPECTIONS: 'kvtms_qa_inspections_v2_live',
-    DAMAGE_LOGS: 'kvtms_damage_logs_v2_live',
-    EQUIPMENT_LOGS: 'kvtms_equipment_logs_v2_live',
-    FEEDBACK_LOGS: 'kvtms_feedback_logs_v2_live',
-    TRAINER_SKILL_NOTES: 'kvtms_trainer_skill_notes_v2_live',
-    PLACEMENTS: 'kvtms_placements_v2_live',
-    POS_RETURNS: 'kvtms_pos_returns_v2_live',
-    RUBRIC_SCORES: 'kvtms_rubric_scores_v2_live'
+    QA_INSPECTIONS: 'kvtms_qa_inspections_v3_live',
+    DAMAGE_LOGS: 'kvtms_damage_logs_v3_live',
+    EQUIPMENT_LOGS: 'kvtms_equipment_logs_v3_live',
+    FEEDBACK_LOGS: 'kvtms_feedback_logs_v3_live',
+    TRAINER_SKILL_NOTES: 'kvtms_trainer_skill_notes_v3_live',
+    PLACEMENTS: 'kvtms_placements_v3_live',
+    POS_RETURNS: 'kvtms_pos_returns_v3_live',
+    RUBRIC_SCORES: 'kvtms_rubric_scores_v3_live'
 };
 
 // Default Seed Data for QA Inspections (Aligned with real batches in DataInitializer.java)
@@ -24,7 +24,7 @@ const DEFAULT_QA_INSPECTIONS = [
         productName: 'Handcrafted Cotton Kurti',
         trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
         workshopName: 'Workshop Lab #1 (Sewing & Textiles)',
-        inspectorName: 'Dr. Debashis Mohanty (KISS-ADM-001)',
+        inspectorName: 'Kavita Priyadarshini Das (KISS-PRD-001)',
         inspectionDate: '2026-10-09',
         targetQty: 15,
         producedQty: 15,
@@ -47,7 +47,7 @@ const DEFAULT_QA_INSPECTIONS = [
         productName: 'Sambalpuri Handloom Stole',
         trade: 'Handicrafts & Tribal Art (VOC-ART-102)',
         workshopName: 'Workshop Lab #2 (Sambalpuri Handloom)',
-        inspectorName: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        inspectorName: 'Kavita Priyadarshini Das (KISS-PRD-001)',
         inspectionDate: '2026-10-10',
         targetQty: 10,
         producedQty: 10,
@@ -79,7 +79,7 @@ const DEFAULT_DAMAGE_LOGS = [
         damageStage: 'Pattern Cutting Practice (Workshop Lab #1)',
         reason: 'Initial sleeve pattern misalignment during beginner scholar practice session',
         disposition: 'RECYCLED_FOR_PATCHWORK',
-        reportedBy: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        reportedBy: 'Kavita Priyadarshini Das (KISS-PRD-001)',
         estimatedLoss: 300,
         preventionNote: 'Added mandatory brown-paper template check before cutting Pure Cotton Fabric.'
     },
