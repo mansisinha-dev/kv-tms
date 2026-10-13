@@ -30,16 +30,20 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
     const myFullName = currentUser?.fullName || currentUser?.name || 'Laxman Majhi';
 
     const [activeSection, setActiveSection] = useState(
-        initialMode === 'certifications-placements' ? 'certification' : 'feedback'
+        initialMode === 'certifications-placements'
+            ? 'certification'
+            : isTrainer
+            ? 'skill-coaching'
+            : 'feedback'
     );
 
     useEffect(() => {
         if (initialMode === 'certifications-placements') {
             setActiveSection('certification');
         } else if (initialMode === 'feedback-hub') {
-            setActiveSection('feedback');
+            setActiveSection(isTrainer ? 'skill-coaching' : 'feedback');
         }
-    }, [initialMode]);
+    }, [initialMode, isTrainer]);
 
     const [feedbackList, setFeedbackList] = useState(() => VocationalStore.getFeedbackLogs());
     const [skillNotes, setSkillNotes] = useState(() => VocationalStore.getTrainerSkillNotes());
@@ -243,7 +247,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
         e.preventDefault();
         VocationalStore.addFeedback({
             ...fbForm,
-            sourceRole: isTrainee ? 'TRAINEE' : fbForm.sourceRole,
+            sourceRole: isTrainee ? 'TRAINEE' : isTrainer ? 'TRAINER' : fbForm.sourceRole,
             rating: Number(fbForm.rating),
             submittedById: myCollegeId,
             submittedBy: `${myFullName} (${myCollegeId})`
@@ -255,7 +259,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
     };
 
     const handleResolveFeedback = (id) => {
-        const responseText = replyMap[id] || 'Reviewed by Vocational Directorate. Necessary workshop action completed.';
+        const responseText = replyMap[id] || (isTrainer ? `Reviewed by Faculty Trainer (${myFullName}). Necessary studio action taken.` : 'Reviewed by Vocational Directorate. Necessary workshop action completed.');
         VocationalStore.resolveFeedback(id, responseText);
         setFeedbackList(VocationalStore.getFeedbackLogs());
         notify(`Feedback #${id} marked as Resolved with official response.`);
@@ -308,21 +312,25 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
 
     // =========================================================================
     // STRICT ROLE-BASED PRIVACY FILTERING
-    // - Trainees ONLY see their OWN Coaching Notes & their OWN Certificate/Placement!
-    // - In Feedback, Trainees see their own grievances/feedback + public Buyer reviews.
-    // - Production Managers see Buyer reviews & Workshop/Material/Product quality logs (NOT private academic/stipend grievances or academic certificates).
-    // - Trainers & Admins see records across enrolled scholars.
+    // - Trainees ONLY see their OWN submitted feedback, their OWN Coaching Notes & their OWN Certificate/Placement!
+    // - Trainers ONLY see Student Skill Coaching & Classroom/Lab Feedback (NO commercial Buyer POS reviews and NO University Certificate issuance!).
+    // - Production Managers ONLY see Buyer POS reviews & Workshop/Material/Product quality logs (NO student academic coaching or certificates!).
+    // - Admins see all 360° records across the institute.
     // =========================================================================
     const visibleFeedback = isTrainee
         ? feedbackList.filter(fb =>
             fb.submittedById === myCollegeId ||
-            (fb.submittedBy && fb.submittedBy.includes(myCollegeId)) ||
-            fb.sourceRole === 'CUSTOMER_BUYER'
+            (fb.submittedBy && fb.submittedBy.includes(myCollegeId))
+        )
+        : isTrainer
+        ? feedbackList.filter(fb =>
+            fb.sourceRole === 'TRAINEE' ||
+            fb.sourceRole === 'TRAINER'
         )
         : isProdMgr
         ? feedbackList.filter(fb =>
             ['CUSTOMER_BUYER', 'PRODUCTION_MANAGER'].includes(fb.sourceRole) ||
-            ['WORKSHOP_LAB_EQUIPMENT', 'RAW_MATERIAL_QUALITY', 'PRODUCT_QUALITY'].includes(fb.category) ||
+            ['WORKSHOP_LAB_EQUIPMENT', 'RAW_MATERIAL_QUALITY', 'PRODUCT_QUALITY', 'WORKSHOP_TOOL_GRIEVANCE'].includes(fb.category) ||
             fb.submittedById === myCollegeId
         )
         : feedbackList;
@@ -353,10 +361,19 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
         : '5.0';
 
     // Trade/Product options from live database courses & products
-    const tradeAndProductOptions = [
-        ...coursesList.map(c => `${c.name} (${c.code})`),
-        ...productsList.map(p => `${p.name} (${p.sku})`)
-    ];
+    const tradeAndProductOptions = isTrainer
+        ? (coursesList.length > 0
+            ? coursesList.map(c => `${c.name} (${c.code})`)
+            : [
+                'Sewing & Apparel Manufacturing (VOC-SEW-101)',
+                'Handicrafts & Tribal Art (VOC-ART-102)',
+                'Food Processing & Preservation (VOC-FOD-103)',
+                'Carpentry & Woodwork (VOC-CAR-104)'
+            ])
+        : [
+            ...coursesList.map(c => `${c.name} (${c.code})`),
+            ...productsList.map(p => `${p.name} (${p.sku})`)
+        ];
     if (tradeAndProductOptions.length === 0) {
         tradeAndProductOptions.push(
             'Sewing & Apparel Manufacturing (VOC-SEW-101)',
@@ -384,7 +401,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                                 {isTrainee
                                     ? `Scholar Private View (${myCollegeId})`
                                     : isTrainer
-                                    ? 'Faculty Mentorship View'
+                                    ? `Faculty Studio Mentorship (${myCollegeId})`
                                     : isProdMgr
                                     ? 'Workshop & POS Quality View'
                                     : 'Directorate Full Access'}
@@ -394,15 +411,19 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                             <Award size={24} className="text-amber-300" />
                             {isTrainee
                                 ? 'My Course Feedback, Faculty Coaching & NSQF Trade Certificate'
+                                : isTrainer
+                                ? 'Student Skill Coaching & Classroom Lab Feedback'
                                 : isProdMgr
-                                ? 'Buyer Product Reviews, Workshop Grievances & Defect Coaching'
+                                ? 'Commercial Buyer Quality Reviews & Workshop Grievances'
                                 : '360° Stakeholder Feedback, Skill Coaching & NSQF Certification Cell'}
                         </h2>
                         <p className="text-xs text-emerald-100 mt-1 max-w-2xl">
                             {isTrainee
-                                ? 'Submit workshop or course feedback, view personalized defect-prevention coaching from your faculty trainer, and download your official NSQF Trade Certificate.'
+                                ? 'Submit course or lab feedback, view personalized defect-prevention coaching from your faculty trainer, and download your official NSQF Trade Certificate.'
+                                : isTrainer
+                                ? 'Record constructive skill & defect-prevention coaching notes for enrolled scholars, and review student feedback on practical courses and studio labs.'
                                 : isProdMgr
-                                ? 'Monitor commercial buyer reviews from POS sales, resolve workshop equipment/raw-material grievances, and view batch defect-prevention tips.'
+                                ? 'Monitor commercial buyer product reviews from POS sales and resolve workshop equipment or raw-material grievances.'
                                 : 'Manage trainee course & workshop grievances, buyer quality reviews, personalized defect-prevention coaching, and NSQF Trade Certificates synced with live academic records.'}
                         </p>
                     </div>
@@ -413,16 +434,22 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                         </div>
                         <div className="bg-white/10 px-3.5 py-2 rounded-xl border border-white/15">
                             <p className="text-[10px] text-emerald-200 uppercase font-bold">
-                                {isTrainee ? 'My Coaching' : 'Skill Notes'}
+                                {isTrainee ? 'My Coaching' : isProdMgr ? 'Open Issues' : 'Skill Notes'}
                             </p>
-                            <p className="text-lg font-black text-white">{visibleSkillNotes.length}</p>
+                            <p className="text-lg font-black text-white">
+                                {isProdMgr ? visibleFeedback.filter(f => f.status === 'OPEN').length : visibleSkillNotes.length}
+                            </p>
                         </div>
                         <div className="bg-white/10 px-3.5 py-2 rounded-xl border border-white/15">
                             <p className="text-[10px] text-emerald-200 uppercase font-bold">
-                                {isTrainee ? 'My Certificate' : isProdMgr ? 'Buyer/Lab Logs' : 'Certified/Placed'}
+                                {isTrainee ? 'My Certificate' : isTrainer ? 'Lab Feedback' : isProdMgr ? 'Buyer/Lab Logs' : 'Certified/Placed'}
                             </p>
                             <p className="text-lg font-black text-emerald-300">
-                                {isTrainee ? (visiblePlacements.length > 0 ? 'Issued' : 'In Progress') : isProdMgr ? visibleFeedback.length : visiblePlacements.length}
+                                {isTrainee
+                                    ? (visiblePlacements.length > 0 ? 'Issued' : 'In Progress')
+                                    : isTrainer || isProdMgr
+                                    ? visibleFeedback.length
+                                    : visiblePlacements.length}
                             </p>
                         </div>
                     </div>
@@ -436,46 +463,84 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                 </div>
             )}
 
-            {/* Sub-Navigation */}
+            {/* Sub-Navigation (Role-Specific Tabs) */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
                 <div className="flex flex-wrap items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setActiveSection('feedback')}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                            activeSection === 'feedback'
-                                ? 'bg-[#006837] text-white shadow-sm'
-                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                        }`}
-                    >
-                        <MessageSquarePlus size={15} />
-                        1. {isTrainee ? 'My Feedback & Buyer Reviews' : isProdMgr ? 'Buyer Reviews & Workshop Grievances' : 'Trainee, Workshop & Buyer Feedback'} ({visibleFeedback.length})
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveSection('skill-coaching')}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                            activeSection === 'skill-coaching'
-                                ? 'bg-[#006837] text-white shadow-sm'
-                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                        }`}
-                    >
-                        <UserCheck size={15} />
-                        2. {isTrainee ? 'My Trainer Coaching & Lab Hours' : 'Trainer Skill & Defect Coaching Log'} ({visibleSkillNotes.length})
-                    </button>
-                    {!isProdMgr && (
+                    {isTrainer ? (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setActiveSection('skill-coaching')}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeSection === 'skill-coaching'
+                                        ? 'bg-[#006837] text-white shadow-sm'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                }`}
+                            >
+                                <UserCheck size={15} />
+                                1. Student Skill & Defect Coaching Log ({visibleSkillNotes.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveSection('feedback')}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeSection === 'feedback'
+                                        ? 'bg-[#006837] text-white shadow-sm'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                }`}
+                            >
+                                <MessageSquarePlus size={15} />
+                                2. Student Course & Classroom Lab Feedback ({visibleFeedback.length})
+                            </button>
+                        </>
+                    ) : isProdMgr ? (
                         <button
                             type="button"
-                            onClick={() => setActiveSection('certification')}
-                            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                                activeSection === 'certification'
-                                    ? 'bg-[#006837] text-white shadow-sm'
-                                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                            }`}
+                            onClick={() => setActiveSection('feedback')}
+                            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#006837] text-white shadow-sm flex items-center gap-2 cursor-pointer"
                         >
-                            <Award size={15} />
-                            3. {isTrainee ? 'My NSQF Trade Certificate & OJT' : 'NSQF Trade Certificates, OJT & Placements'} ({visiblePlacements.length})
+                            <MessageSquarePlus size={15} />
+                            Commercial Buyer Reviews & Workshop Grievances ({visibleFeedback.length})
                         </button>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setActiveSection('feedback')}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeSection === 'feedback'
+                                        ? 'bg-[#006837] text-white shadow-sm'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                }`}
+                            >
+                                <MessageSquarePlus size={15} />
+                                1. {isTrainee ? 'My Course & Lab Feedback' : '360° Stakeholder Feedback & Grievances'} ({visibleFeedback.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveSection('skill-coaching')}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeSection === 'skill-coaching'
+                                        ? 'bg-[#006837] text-white shadow-sm'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                }`}
+                            >
+                                <UserCheck size={15} />
+                                2. {isTrainee ? 'My Trainer Coaching & Lab Hours' : 'Faculty Skill & Defect Coaching Log'} ({visibleSkillNotes.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveSection('certification')}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                    activeSection === 'certification'
+                                        ? 'bg-[#006837] text-white shadow-sm'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                }`}
+                            >
+                                <Award size={15} />
+                                3. {isTrainee ? 'My NSQF Trade Certificate & OJT' : 'NSQF Trade Certificates, OJT & Placements'} ({visiblePlacements.length})
+                            </button>
+                        </>
                     )}
                 </div>
 
@@ -491,7 +556,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
             </div>
 
             {/* ===================================================================== */}
-            {/* TAB 1: 360° USER FEEDBACK & GRIEVANCE RESOLUTION                      */}
+            {/* TAB 1: USER FEEDBACK & GRIEVANCE RESOLUTION                           */}
             {/* ===================================================================== */}
             {activeSection === 'feedback' && (
                 <div className="space-y-5">
@@ -500,12 +565,20 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                             <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                                 <MessageSquarePlus size={18} className="text-[#006837]" />
                                 {isTrainee
-                                    ? `My Course / Lab Feedback & Showroom Buyer Appreciation (${myFullName})`
-                                    : 'Stakeholder Feedback, Lab Grievances & Product Quality Reviews'}
+                                    ? `My Course & Practical Lab Feedback (${myFullName})`
+                                    : isTrainer
+                                    ? 'Student Course Feedback & Studio Equipment Requests'
+                                    : isProdMgr
+                                    ? 'Commercial Buyer Quality Reviews & Workshop Grievances'
+                                    : '360° Stakeholder Feedback, Lab Grievances & Product Quality Reviews'}
                             </h3>
                             <p className="text-xs text-slate-500 mt-0.5">
                                 {isTrainee
-                                    ? 'Your personal lab grievances are visible only to you, your Faculty Trainer, and Central Administration.'
+                                    ? 'Your personal course and lab feedback is visible only to you, your Faculty Trainer, and Central Administration.'
+                                    : isTrainer
+                                    ? 'Review and respond to scholar feedback on practical sessions, or submit a studio equipment request to Administration.'
+                                    : isProdMgr
+                                    ? 'Record customer quality reviews from POS sales and resolve workshop equipment or raw-material grievances.'
                                     : 'Captures trainee feedback on courses/labs, workshop tool grievances, and buyer reviews on student-manufactured crafts.'}
                             </p>
                         </div>
@@ -515,25 +588,44 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                             className="bg-[#006837] hover:bg-[#004d28] text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
                         >
                             <Send size={13} />
-                            {showFeedbackForm ? 'Close Form' : 'Submit Feedback / Grievance'}
+                            {showFeedbackForm
+                                ? 'Close Form'
+                                : isTrainer
+                                ? 'Submit Studio Lab Request'
+                                : isProdMgr
+                                ? 'Log Buyer Review / Lab Issue'
+                                : 'Submit Feedback / Grievance'}
                         </button>
                     </div>
 
                     {showFeedbackForm && (
                         <form onSubmit={handleSubmitFeedback} className="bg-emerald-50/60 border-2 border-emerald-200 rounded-2xl p-5 space-y-4 text-xs">
                             <h4 className="font-bold text-[#006837] text-sm border-b border-emerald-200 pb-2">
-                                Submit Official Feedback, Product Quality Rating, or Workshop Grievance
+                                {isTrainer
+                                    ? 'Submit Faculty Studio Lab Observation or Equipment Request'
+                                    : isTrainee
+                                    ? 'Submit Course Feedback or Practical Lab Grievance'
+                                    : 'Submit Official Feedback, Product Quality Rating, or Workshop Grievance'}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                 <div>
                                     <label className="block font-bold text-slate-700 mb-1">Submitted By</label>
-                                    {isTrainee ? (
+                                    {isTrainee || isTrainer ? (
                                         <input
                                             type="text"
                                             disabled
                                             value={`${myFullName} (${myCollegeId})`}
                                             className="w-full bg-slate-100 border border-slate-300 rounded-lg px-3 py-1.5 font-bold text-slate-700"
                                         />
+                                    ) : isProdMgr ? (
+                                        <select
+                                            value={fbForm.sourceRole}
+                                            onChange={e => setFbForm({ ...fbForm, sourceRole: e.target.value })}
+                                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
+                                        >
+                                            <option value="CUSTOMER_BUYER">Showroom Buyer / Customer (via POS)</option>
+                                            <option value="PRODUCTION_MANAGER">Production Manager ({myFullName})</option>
+                                        </select>
                                     ) : (
                                         <select
                                             value={fbForm.sourceRole}
@@ -541,7 +633,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                                             className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                         >
                                             <option value="CUSTOMER_BUYER">Showroom Buyer / Customer</option>
-                                            <option value="TRAINER">Faculty Trainer ({myFullName})</option>
+                                            <option value="TRAINER">Faculty Trainer</option>
                                             <option value="TRAINEE">Vocational Scholar / Trainee</option>
                                         </select>
                                     )}
@@ -553,9 +645,9 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                                         onChange={e => setFbForm({ ...fbForm, category: e.target.value })}
                                         className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5"
                                     >
-                                        <option value="TRAINING_AND_LAB_FEEDBACK">Course & Practical Lab Feedback</option>
+                                        {!isProdMgr && <option value="TRAINING_AND_LAB_FEEDBACK">Course & Practical Lab Feedback</option>}
                                         <option value="WORKSHOP_TOOL_GRIEVANCE">Workshop Machine / Toolkit Grievance</option>
-                                        {!isTrainee && <option value="PRODUCT_QUALITY_REVIEW">Craft Product Quality Review</option>}
+                                        {(isProdMgr || isAdmin) && <option value="PRODUCT_QUALITY_REVIEW">Craft Product Quality Review</option>}
                                     </select>
                                 </div>
                                 <div>
