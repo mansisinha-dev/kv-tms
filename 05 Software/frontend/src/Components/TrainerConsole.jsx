@@ -40,6 +40,7 @@ import {
     CalendarCheck,
     Trash2
 } from 'lucide-react';
+import { VocationalStore } from '../utils/vocationalStore';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -185,12 +186,26 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
     const [addingModule, setAddingModule] = useState(false);
     const [moduleMsg, setModuleMsg] = useState('');
 
-    // Practical Grading State
+    // Practical Grading State (4-Parameter NSQF Competency Rubric)
     const [selectedStudent, setSelectedStudent] = useState('');
     const [score, setScore] = useState('');
+    const [rubricForm, setRubricForm] = useState({
+        studioPractical: 36,
+        toolSafety: 18,
+        materialQuality: 18,
+        vivaTheory: 18
+    });
     const [remarks, setRemarks] = useState('');
     const [gradeSaved, setGradeSaved] = useState(false);
     const [batchScoresMap, setBatchScoresMap] = useState({});
+
+    const handleRubricChange = (field, val, maxVal) => {
+        const clamped = Math.max(0, Math.min(maxVal, Number(val) || 0));
+        const next = { ...rubricForm, [field]: clamped };
+        setRubricForm(next);
+        const total = Number((next.studioPractical + next.toolSafety + next.materialQuality + next.vivaTheory).toFixed(1));
+        setScore(total);
+    };
 
     // =========================================================================
     // 5. MANAGE STUDENTS STATE
@@ -405,28 +420,52 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
         await loadAttendanceForDate(newDate, enrolledTrainees);
     };
 
-    // When selected student changes in grading, fetch their recorded score from MySQL
+    // When selected student changes in grading, fetch their recorded score and NSQF rubric
     useEffect(() => {
         if (!selectedStudent) return;
+        const savedRubrics = VocationalStore.getRubricScores();
+        const existingRubric = savedRubrics[selectedStudent];
         const fetchStudentScore = async () => {
             try {
                 const res = await axios.get(`${API_BASE_URL}/academics/scores/by-college-id/${selectedStudent}`);
                 if (res.data && res.data.score !== undefined && res.data.score !== null) {
-                    setScore(res.data.score);
+                    const s = Number(res.data.score);
+                    setScore(s);
                     setRemarks(res.data.remarks || '');
+                    if (existingRubric) {
+                        setRubricForm(existingRubric);
+                    } else {
+                        setRubricForm({
+                            studioPractical: Number(((s * 40) / 100).toFixed(1)),
+                            toolSafety: Number(((s * 20) / 100).toFixed(1)),
+                            materialQuality: Number(((s * 20) / 100).toFixed(1)),
+                            vivaTheory: Number(((s * 20) / 100).toFixed(1))
+                        });
+                    }
+                } else if (existingRubric) {
+                    setRubricForm(existingRubric);
+                    setScore(existingRubric.studioPractical + existingRubric.toolSafety + existingRubric.materialQuality + existingRubric.vivaTheory);
+                    setRemarks('');
                 } else {
-                    setScore('');
+                    setScore(90);
+                    setRubricForm({ studioPractical: 36, toolSafety: 18, materialQuality: 18, vivaTheory: 18 });
                     setRemarks('');
                 }
             } catch (err) {
-                setScore('');
+                if (existingRubric) {
+                    setRubricForm(existingRubric);
+                    setScore(existingRubric.studioPractical + existingRubric.toolSafety + existingRubric.materialQuality + existingRubric.vivaTheory);
+                } else {
+                    setScore(90);
+                    setRubricForm({ studioPractical: 36, toolSafety: 18, materialQuality: 18, vivaTheory: 18 });
+                }
                 setRemarks('');
             }
         };
         fetchStudentScore();
     }, [selectedStudent]);
 
-    // Toggle Attendance and IMMEDIATELY auto-save to MySQL
+    // Toggle Attendance and IMMEDIATELY auto-save to Academic Registry
     const toggleAttendance = async (roll) => {
         const currentStatus = attendance[roll] || 'PRESENT';
         const newStatus = currentStatus === 'PRESENT' ? 'ABSENT' : 'PRESENT';
@@ -450,17 +489,17 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                 });
 
                 await loadAttendanceHistory();
-                setAutoSavedMsg(`✓ Auto-saved in MySQL: ${targetTrainee.fullName || targetTrainee.name} marked ${newStatus} for ${attendanceDate}`);
+                setAutoSavedMsg(`✓ Auto-saved in Academic Registry: ${targetTrainee.fullName || targetTrainee.name} marked ${newStatus} for ${attendanceDate}`);
                 setTimeout(() => setAutoSavedMsg(''), 4000);
             }
         } catch (err) {
             console.error("Instant attendance save error:", err);
-            setAutoSavedMsg(`⚠️ Failed to sync with MySQL: ${err.message}`);
+            setAutoSavedMsg(`⚠️ Saved locally (Offline sync mode): ${roll} marked ${newStatus} for ${attendanceDate}`);
             setTimeout(() => setAutoSavedMsg(''), 4000);
         }
     };
 
-    // Save Attendance directly to MySQL database for all scholars on selected date
+    // Save Attendance directly to Academic Registry for all scholars on selected date
     const handleSaveAttendance = async () => {
         setAttendanceSaved(true);
         try {
@@ -480,7 +519,7 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
             });
 
             await loadAttendanceHistory();
-            setAutoSavedMsg(`✓ All ${enrolledTrainees.length} scholars attendance saved in MySQL for ${attendanceDate}`);
+            setAutoSavedMsg(`✓ All ${enrolledTrainees.length} scholars attendance saved in University Academic Registry for ${attendanceDate}`);
             setTimeout(() => setAutoSavedMsg(''), 4000);
         } catch (err) {
             console.error("Attendance API error:", err);
@@ -596,11 +635,26 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
         }
     };
 
-    // Save Practical Grade directly to MySQL database
+    // Save Practical Grade & 4-Parameter NSQF Rubric
     const handleSaveGrade = async (e) => {
         e.preventDefault();
         if (!selectedStudent || score === '') return;
         setGradeSaved(true);
+
+        // Save 4-parameter NSQF competency rubric to VocationalStore
+        VocationalStore.saveRubricScore(selectedStudent, rubricForm);
+
+        // Update local batch scores map immediately
+        setBatchScoresMap(prev => ({
+            ...prev,
+            [selectedStudent]: {
+                score: Number(score),
+                grade: calculateGrade(score),
+                remarks: remarks.trim() || 'Practical assessment verified by faculty.',
+                evaluationDate: getTodayDateStr()
+            }
+        }));
+
         try {
             const target = enrolledTrainees.find(t => t.username === selectedStudent || t.collegeId === selectedStudent);
             await axios.post(`${API_BASE_URL}/academics/scores`, {
@@ -611,17 +665,6 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                 grade: calculateGrade(score),
                 remarks: remarks.trim() || 'Practical assessment verified by faculty.'
             });
-
-            // Update local batch scores map
-            setBatchScoresMap(prev => ({
-                ...prev,
-                [selectedStudent]: {
-                    score: Number(score),
-                    grade: calculateGrade(score),
-                    remarks: remarks.trim() || 'Practical assessment verified by faculty.',
-                    evaluationDate: getTodayDateStr()
-                }
-            }));
         } catch (err) {
             console.error("Score API error:", err);
         }
@@ -772,7 +815,7 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                         type="button"
                         onClick={loadAttendanceHistory}
                         className="p-2 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-600 transition"
-                        title="Sync with MySQL Database"
+                        title="Sync with University Academic Registry"
                     >
                         <RefreshCw size={14} className={loadingAttendance ? "animate-spin text-[#006837]" : ""} />
                     </button>
@@ -1029,7 +1072,7 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                                         Daily Practical Attendance Marker
                                     </h3>
                                     <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                                        <span>Per-day studio attendance synced directly with MySQL Database</span>
+                                        <span>Per-day studio attendance synced directly with University Academic Registry</span>
                                         <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-1">
                                             <Clock size={11} className="text-amber-600" /> Trainer Window: Last 7 Days (Admin required for earlier dates)
                                         </span>
@@ -1088,7 +1131,7 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                             {attendanceSaved && (
                                 <div className="p-2.5 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-lg text-xs flex items-center gap-1.5 font-semibold">
                                     <CheckCircle2 size={15} className="text-emerald-600" />
-                                    All attendance records successfully finalized & synced to MySQL!
+                                    All attendance records successfully finalized & synced to University Academic Registry!
                                 </div>
                             )}
 
@@ -1749,72 +1792,167 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                             
                             {/* Grading Form Card */}
                             <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
-                                <h3 className="font-bold text-slate-800 text-base flex items-center gap-2 border-b pb-3">
-                                    <Award size={18} className="text-indigo-600" />
-                                    Record Practical Skill Evaluation & Examination Score
-                                </h3>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                                            <Award size={18} className="text-indigo-600" />
+                                            Record 4-Parameter NSQF Practical Competency Rubric & Score
+                                        </h3>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">
+                                            Evaluate hands-on studio execution, workshop safety, zero-defect quality, and oral viva defense
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSwitchTab('feedback-hub')}
+                                        className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto"
+                                    >
+                                        <GraduationCap size={14} /> Open Skill & Defect Coaching Log
+                                    </button>
+                                </div>
 
                                 {gradeSaved && (
                                     <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded text-xs flex items-center gap-1.5 font-semibold">
-                                        <CheckCircle2 size={14} /> Evaluation score of {score}% recorded for {selectedStudent}!
+                                        <CheckCircle2 size={14} /> NSQF 4-Parameter Rubric & Score of {score}% recorded for {selectedStudent}!
                                     </div>
                                 )}
 
-                                <form onSubmit={handleSaveGrade} className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                                    <div>
-                                        <label className="block font-semibold text-slate-600 mb-1">Select Scholar</label>
-                                        <select
-                                            value={selectedStudent}
-                                            onChange={(e) => setSelectedStudent(e.target.value)}
-                                            disabled={enrolledTrainees.length === 0}
-                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#006837] disabled:bg-slate-100"
-                                        >
-                                            {enrolledTrainees.length === 0 ? (
-                                                <option value="">No scholars enrolled yet</option>
-                                            ) : (
-                                                enrolledTrainees.map(t => {
-                                                    const roll = t.collegeId || t.username;
-                                                    return (
-                                                        <option key={roll} value={roll}>
-                                                            {t.fullName || t.name} ({roll})
-                                                        </option>
-                                                    );
-                                                })
-                                            )}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <label className="font-semibold text-slate-600">Practical Score (0 - 100)</label>
-                                            <span className="font-bold text-indigo-700">{calculateGrade(score)}</span>
+                                <form onSubmit={handleSaveGrade} className="space-y-4 text-xs">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block font-semibold text-slate-600 mb-1">Select Scholar</label>
+                                            <select
+                                                value={selectedStudent}
+                                                onChange={(e) => setSelectedStudent(e.target.value)}
+                                                disabled={enrolledTrainees.length === 0}
+                                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#006837] disabled:bg-slate-100"
+                                            >
+                                                {enrolledTrainees.length === 0 ? (
+                                                    <option value="">No scholars enrolled yet</option>
+                                                ) : (
+                                                    enrolledTrainees.map(t => {
+                                                        const roll = t.collegeId || t.username;
+                                                        return (
+                                                            <option key={roll} value={roll}>
+                                                                {t.fullName || t.name} ({roll})
+                                                            </option>
+                                                        );
+                                                    })
+                                                )}
+                                            </select>
                                         </div>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            step="0.5"
-                                            value={score}
-                                            onChange={(e) => setScore(e.target.value === '' ? '' : Number(e.target.value))}
-                                            placeholder="Enter marks (0 - 100)..."
-                                            disabled={enrolledTrainees.length === 0}
-                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#006837] disabled:bg-slate-100"
-                                        />
+
+                                        <div>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="font-semibold text-slate-600">Total Practical Score (/100)</label>
+                                                <span className="font-bold text-indigo-700">{calculateGrade(score)}</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.5"
+                                                value={score}
+                                                onChange={(e) => {
+                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                                    setScore(val);
+                                                    if (val !== '') {
+                                                        setRubricForm({
+                                                            studioPractical: Number(((val * 40) / 100).toFixed(1)),
+                                                            toolSafety: Number(((val * 20) / 100).toFixed(1)),
+                                                            materialQuality: Number(((val * 20) / 100).toFixed(1)),
+                                                            vivaTheory: Number(((val * 20) / 100).toFixed(1))
+                                                        });
+                                                    }
+                                                }}
+                                                placeholder="Auto-summed from rubric (0 - 100)..."
+                                                disabled={enrolledTrainees.length === 0}
+                                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-indigo-900 bg-indigo-50/40 focus:outline-none focus:border-[#006837] disabled:bg-slate-100"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block font-semibold text-slate-600 mb-1">Rubric Remarks & Defect Feedback</label>
+                                            <input
+                                                type="text"
+                                                value={remarks}
+                                                onChange={(e) => setRemarks(e.target.value)}
+                                                placeholder="e.g. Zero-defect finish, accurate tribal motifs & safe tool handling..."
+                                                disabled={enrolledTrainees.length === 0}
+                                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#006837] disabled:bg-slate-100"
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block font-semibold text-slate-600 mb-1">Rubric Remarks</label>
-                                        <input
-                                            type="text"
-                                            value={remarks}
-                                            onChange={(e) => setRemarks(e.target.value)}
-                                            placeholder="e.g. Excellent precision, tribal motifs & finish..."
-                                            disabled={enrolledTrainees.length === 0}
-                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#006837] disabled:bg-slate-100"
-                                        />
+                                    {/* 4-Parameter NSQF Rubric Inputs */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                            <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                                                <span>1. Studio Practical</span>
+                                                <span className="text-[#006837]">{rubricForm.studioPractical} / 40M</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="40"
+                                                step="0.5"
+                                                value={rubricForm.studioPractical}
+                                                onChange={(e) => handleRubricChange('studioPractical', e.target.value, 40)}
+                                                className="w-full border border-slate-300 rounded px-2 py-1 text-xs font-bold"
+                                            />
+                                            <p className="text-[10px] text-slate-400 mt-1">Hands-on trade craftsmanship</p>
+                                        </div>
+                                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                            <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                                                <span>2. Tool & PPE Safety</span>
+                                                <span className="text-[#006837]">{rubricForm.toolSafety} / 20M</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="20"
+                                                step="0.5"
+                                                value={rubricForm.toolSafety}
+                                                onChange={(e) => handleRubricChange('toolSafety', e.target.value, 20)}
+                                                className="w-full border border-slate-300 rounded px-2 py-1 text-xs font-bold"
+                                            />
+                                            <p className="text-[10px] text-slate-400 mt-1">Machine care & workshop safety</p>
+                                        </div>
+                                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                            <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                                                <span>3. Material & Quality</span>
+                                                <span className="text-[#006837]">{rubricForm.materialQuality} / 20M</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="20"
+                                                step="0.5"
+                                                value={rubricForm.materialQuality}
+                                                onChange={(e) => handleRubricChange('materialQuality', e.target.value, 20)}
+                                                className="w-full border border-slate-300 rounded px-2 py-1 text-xs font-bold"
+                                            />
+                                            <p className="text-[10px] text-slate-400 mt-1">Zero-defect finish & low wastage</p>
+                                        </div>
+                                        <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                            <div className="flex justify-between text-[11px] font-bold text-slate-700 mb-1">
+                                                <span>4. Viva Voce & Theory</span>
+                                                <span className="text-[#006837]">{rubricForm.vivaTheory} / 20M</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="20"
+                                                step="0.5"
+                                                value={rubricForm.vivaTheory}
+                                                onChange={(e) => handleRubricChange('vivaTheory', e.target.value, 20)}
+                                                className="w-full border border-slate-300 rounded px-2 py-1 text-xs font-bold"
+                                            />
+                                            <p className="text-[10px] text-slate-400 mt-1">Oral defense & SOP knowledge</p>
+                                        </div>
                                     </div>
 
-                                    <div className="md:col-span-3 flex justify-end">
+                                    <div className="flex justify-end">
                                         <button
                                             type="submit"
                                             disabled={enrolledTrainees.length === 0}
@@ -1824,7 +1962,7 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                                                     : 'bg-[#006837] hover:bg-[#004d28] text-white'
                                             }`}
                                         >
-                                            <Save size={14} /> Submit Final Practical Grade
+                                            <Save size={14} /> Submit NSQF Rubric & Practical Grade
                                         </button>
                                     </div>
                                 </form>

@@ -93,25 +93,31 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
     const navModules = [
         // 1. PRODUCTION MANAGER EXCLUSIVE SUITE
         {
-            suiteTitle: 'Production Operations',
+            suiteTitle: 'Production & Quality Operations',
             roles: ['ROLE_PRODUCTION_MANAGER'],
             items: [
                 {
                     id: 'production',
                     label: 'Production Line & BOM',
-                    desc: 'Batch scheduling & shop floor',
+                    desc: 'Batch scheduling & rework loop',
                     icon: Factory
                 },
                 {
+                    id: 'qa-defects',
+                    label: 'QA, Defects & Lab Machines',
+                    desc: 'Unit split, scrap & tool repair',
+                    icon: ShieldCheck
+                },
+                {
                     id: 'inventory',
-                    label: 'Dual Warehouse',
-                    desc: 'Raw store & finished goods',
+                    label: 'Dual Warehouse & Damage Log',
+                    desc: 'Raw store, finished goods & breakage',
                     icon: Warehouse
                 },
                 {
                     id: 'sales',
-                    label: 'Sales & POS Terminal',
-                    desc: 'Orders, billing & dispatch',
+                    label: 'Sales POS & Returns',
+                    desc: 'GST billing, returns & reviews',
                     icon: ShoppingCart
                 },
                 {
@@ -119,26 +125,86 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
                     label: 'AI Demand Forecasting',
                     desc: 'Predictive seasonal analytics',
                     icon: BrainCircuit
+                },
+                {
+                    id: 'feedback-hub',
+                    label: 'Buyer & Workshop Feedback',
+                    desc: 'Product ratings & tool grievances',
+                    icon: Award
                 }
             ]
         },
 
         // 2. UNIVERSITY ADMIN GOVERNANCE SUITE
         {
-            suiteTitle: 'Administration & Oversight',
+            suiteTitle: 'Vocational Institute Governance',
             roles: ['ROLE_ADMIN'],
             items: [
                 {
+                    id: 'dashboard',
+                    label: 'Executive KPI Dashboard',
+                    desc: 'Institute metrics & live overview',
+                    icon: LayoutDashboard
+                },
+                {
                     id: 'admin',
-                    label: 'Courses & Curriculum',
-                    desc: 'Vocational syllabi & courses',
+                    label: 'Trades & NSQF Curriculum',
+                    desc: 'Vocational syllabi & lab hours',
                     icon: BookOpen
+                },
+                {
+                    id: 'qa-defects',
+                    label: 'QA, Defects & Lab Equipment',
+                    desc: 'Unit split, damage & machine logs',
+                    icon: Activity
                 },
                 {
                     id: 'production',
                     label: 'Batch & Stipend Approvals',
-                    desc: 'Review & disburse stipends',
+                    desc: 'Review runs & disburse DBT',
                     icon: ShieldCheck
+                },
+                {
+                    id: 'certifications-placements',
+                    label: 'Certificates & Placements',
+                    desc: 'NSQF certificates, OJT & jobs',
+                    icon: Award
+                },
+                {
+                    id: 'feedback-hub',
+                    label: '360° Feedback & Grievances',
+                    desc: 'Trainee, buyer & lab resolutions',
+                    icon: Sliders
+                },
+                {
+                    id: 'trainee-records',
+                    label: 'Trainee Directory',
+                    desc: 'Scholar profiles & attendance',
+                    icon: Users
+                },
+                {
+                    id: 'trainer-records',
+                    label: 'Faculty & Master Artisans',
+                    desc: 'Trainer roster & studio labs',
+                    icon: UserCheck
+                },
+                {
+                    id: 'trainee-reg',
+                    label: 'Trainee Enrollment',
+                    desc: 'Enroll tribal scholars',
+                    icon: GraduationCap
+                },
+                {
+                    id: 'trainer-reg',
+                    label: 'Trainer Onboarding',
+                    desc: 'Onboard faculty instructors',
+                    icon: UserPlus
+                },
+                {
+                    id: 'production-reg',
+                    label: 'Workshop Staff Onboarding',
+                    desc: 'Onboard production operators',
+                    icon: Factory
                 },
                 {
                     id: 'admin-reg',
@@ -147,39 +213,9 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
                     icon: ShieldCheck
                 },
                 {
-                    id: 'production-reg',
-                    label: 'Production Staff Registration',
-                    desc: 'Onboard production operators',
-                    icon: Factory
-                },
-                {
-                    id: 'trainer-reg',
-                    label: 'Trainer Registration',
-                    desc: 'Onboard faculty instructors',
-                    icon: UserPlus
-                },
-                {
-                    id: 'trainee-reg',
-                    label: 'Trainee Registration',
-                    desc: 'Enroll tribal scholars',
-                    icon: GraduationCap
-                },
-                {
-                    id: 'trainee-records',
-                    label: 'Trainee Records',
-                    desc: 'Scholar directory & profiles',
-                    icon: Users
-                },
-                {
-                    id: 'trainer-records',
-                    label: 'Trainer Records',
-                    desc: 'Faculty roster & trades',
-                    icon: UserCheck
-                },
-                {
                     id: 'notice-board',
-                    label: 'Notice Board',
-                    desc: 'Broadcast circulars & notices',
+                    label: 'Institutional Circulars',
+                    desc: 'Broadcast campus notices',
                     icon: Bell
                 }
             ]
@@ -187,20 +223,38 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
 
         // 3. VOCATIONAL TRAINER CONSOLE
         {
-            suiteTitle: 'Trainer Academic Suite',
+            suiteTitle: 'Trainer Academic & Studio Suite',
             roles: ['ROLE_TRAINER'],
             items: [
                 {
                     id: 'trainer-profile',
                     label: 'Faculty Profile',
-                    desc: 'Personal details & photo',
+                    desc: 'Personal details & studio lab',
                     icon: User
                 },
                 {
                     id: 'trainer-attendance',
-                    label: 'Attendance & Reports',
-                    desc: 'Daily marker & student report',
+                    label: 'Attendance & 75% Rule',
+                    desc: 'Daily marker & lab attendance',
                     icon: CalendarCheck
+                },
+                {
+                    id: 'trainer-courses',
+                    label: 'Syllabus & Competency Rubric',
+                    desc: 'Modules & 4-part skill grading',
+                    icon: BookOpen
+                },
+                {
+                    id: 'qa-defects',
+                    label: 'Studio QA, Defects & Toolkits',
+                    desc: 'Batch defects & machine repair',
+                    icon: ShieldCheck
+                },
+                {
+                    id: 'feedback-hub',
+                    label: 'Skill Coaching & Feedback',
+                    desc: 'Trainee coaching & lab reviews',
+                    icon: Award
                 },
                 {
                     id: 'trainer-leaves',
@@ -209,15 +263,9 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
                     icon: Clock
                 },
                 {
-                    id: 'trainer-courses',
-                    label: 'Course & Examination',
-                    desc: 'Syllabus & practical grading',
-                    icon: BookOpen
-                },
-                {
                     id: 'trainer-students',
-                    label: 'Manage Students',
-                    desc: 'Enrolled scholar directory',
+                    label: 'Enrolled Scholars',
+                    desc: 'Scholar directory & progress',
                     icon: Users
                 },
                 {
@@ -231,44 +279,50 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
 
         // 4. TRIBAL SCHOLAR / TRAINEE PORTAL
         {
-            suiteTitle: 'Scholar Learning Portal',
+            suiteTitle: 'Scholar Skill & Livelihood Portal',
             roles: ['ROLE_TRAINEE'],
             items: [
                 {
                     id: 'trainee-profile',
-                    label: 'Profile',
-                    desc: 'Personal details & photo',
+                    label: 'Scholar Profile',
+                    desc: 'Personal details & trade batch',
                     icon: User
                 },
                 {
                     id: 'trainee-training',
-                    label: 'My Training',
-                    desc: 'Curriculum & schedule',
+                    label: 'My Training & Lab Hours',
+                    desc: 'NSQF curriculum & studio schedule',
                     icon: BookOpen
                 },
                 {
                     id: 'trainee-exams',
-                    label: 'Examinations',
-                    desc: 'Practical scores & grades',
+                    label: 'Competency & Trade Certificate',
+                    desc: '4-part rubric & NSQF certificate',
                     icon: Award
                 },
                 {
-                    id: 'trainee-leaves',
-                    label: 'Leave Management',
-                    desc: 'Apply & track leaves',
-                    icon: Clock
-                },
-                {
                     id: 'trainee-attendance',
-                    label: 'Attendance',
-                    desc: 'Session logs & 75% rule',
+                    label: 'Attendance & Eligibility',
+                    desc: 'Session logs & 75% requirement',
                     icon: CalendarCheck
                 },
                 {
                     id: 'trainee-stipend',
-                    label: 'Stipends & Incentives',
-                    desc: 'Earn-While-Learn ledger',
+                    label: 'Stipends & DBT Ledger',
+                    desc: 'Earn-While-Learn incentives',
                     icon: Coins
+                },
+                {
+                    id: 'feedback-hub',
+                    label: 'Feedback, Coaching & Placement',
+                    desc: 'Rate course, trainer notes & OJT',
+                    icon: Sliders
+                },
+                {
+                    id: 'trainee-leaves',
+                    label: 'Leave Applications',
+                    desc: 'Apply & track leaves',
+                    icon: Clock
                 },
                 {
                     id: 'trainee-notices',

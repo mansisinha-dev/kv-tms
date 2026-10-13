@@ -1889,9 +1889,18 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
                                                 </span>
                                             )}
 
-                                            {b.status === 'REJECTED' && (
+                                            {b.status === 'REJECTED' && !isAdmin && (
+                                                <button
+                                                    onClick={() => handleOpenCompleteModal(b)}
+                                                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-1 px-2.5 rounded text-[11px] transition shadow inline-flex items-center gap-1 cursor-pointer"
+                                                >
+                                                    <RefreshCw size={11} /> Complete Rework & Resubmit QA
+                                                </button>
+                                            )}
+
+                                            {b.status === 'REJECTED' && isAdmin && (
                                                 <span className="text-[11px] text-rose-700 font-bold">
-                                                    Rework Requested
+                                                    Sent to Workshop for Rework
                                                 </span>
                                             )}
                                         </td>

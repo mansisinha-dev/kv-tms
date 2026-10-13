@@ -38,10 +38,19 @@ import {
     RefreshCw
 } from 'lucide-react';
 
+import { VocationalStore } from '../utils/vocationalStore';
+
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 export default function TraineePortal({ currentUser, activeSection = 'trainee-profile', onNavigateSection }) {
     const studentId = currentUser?.collegeId || currentUser?.username || 'KISS-TRN-2026-001';
+    const [rubricScores, setRubricScores] = useState(() => VocationalStore.getRubricScores());
+
+    useEffect(() => {
+        const syncRubrics = () => setRubricScores(VocationalStore.getRubricScores());
+        window.addEventListener('kvtms_vocational_sync', syncRubrics);
+        return () => window.removeEventListener('kvtms_vocational_sync', syncRubrics);
+    }, []);
 
     // 1. ACTIVE SECTION / TAB ROUTING (Sync with Left Sidebar)
     const [activeTab, setActiveTab] = useState(activeSection || 'trainee-profile');
@@ -657,7 +666,7 @@ export default function TraineePortal({ currentUser, activeSection = 'trainee-pr
                         </div>
 
                         {loadingSyllabus ? (
-                            <p className="text-xs text-slate-400 py-6 text-center">Loading curriculum modules from MySQL...</p>
+                            <p className="text-xs text-slate-400 py-6 text-center">Loading curriculum modules from University Academic Registry...</p>
                         ) : syllabusModules.length === 0 ? (
                             <p className="text-xs text-slate-400 py-6 text-center italic">No modules published yet for this course.</p>
                         ) : (
@@ -716,13 +725,24 @@ export default function TraineePortal({ currentUser, activeSection = 'trainee-pr
                                     Official practical assessment scores graded by Faculty Trainer and ratified by Academic Board
                                 </p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => window.print()}
-                                className="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
-                            >
-                                <Printer size={13} /> Print Official Marksheet
-                            </button>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {onNavigateSection && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onNavigateSection('feedback-hub')}
+                                        className="px-3 py-1.5 bg-[#006837] hover:bg-[#00522b] text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                                    >
+                                        <GraduationCap size={13} /> NSQF Certificate & Coaching Feedback
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => window.print()}
+                                    className="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                                >
+                                    <Printer size={13} /> Print Official Marksheet
+                                </button>
+                            </div>
                         </div>
 
                         {loadingExam ? (
@@ -733,7 +753,7 @@ export default function TraineePortal({ currentUser, activeSection = 'trainee-pr
                                 <div className="p-5 bg-indigo-50/60 border border-indigo-200 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                     <div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">
-                                            Official Practical Evaluation Score
+                                            Official Practical Evaluation Score (NSQF Level-4)
                                         </span>
                                         <div className="flex items-baseline gap-2 mt-2">
                                             <span className="text-4xl font-black text-indigo-950 font-mono">
@@ -757,28 +777,44 @@ export default function TraineePortal({ currentUser, activeSection = 'trainee-pr
                                 {/* Evaluation Rubric Breakdown */}
                                 <div>
                                     <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                                        Practical Assessment Rubric Breakdown ({examScore.score} / 100)
+                                        4-Parameter NSQF Competency Rubric Breakdown ({examScore.score} / 100)
                                     </h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                             <p className="text-[10px] text-slate-500 font-bold uppercase">Studio Practical (40M)</p>
-                                            <p className="text-base font-black text-slate-800 mt-1">{((examScore.score * 40) / 100).toFixed(1)} / 40</p>
+                                            <p className="text-base font-black text-slate-800 mt-1">
+                                                {rubricScores[studentId]?.studioPractical !== undefined
+                                                    ? rubricScores[studentId].studioPractical
+                                                    : ((examScore.score * 40) / 100).toFixed(1)} / 40
+                                            </p>
                                             <p className="text-[10px] text-slate-400 mt-0.5">Hands-on artisan skill execution</p>
                                         </div>
                                         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase">Material & Safety (20M)</p>
-                                            <p className="text-base font-black text-slate-800 mt-1">{((examScore.score * 20) / 100).toFixed(1)} / 20</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">Tool handling & zero-waste</p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase">Tool & Safety (20M)</p>
+                                            <p className="text-base font-black text-slate-800 mt-1">
+                                                {rubricScores[studentId]?.toolSafety !== undefined
+                                                    ? rubricScores[studentId].toolSafety
+                                                    : ((examScore.score * 20) / 100).toFixed(1)} / 20
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Workshop PPE & machine safety</p>
                                         </div>
                                         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase">Trade Technique (20M)</p>
-                                            <p className="text-base font-black text-slate-800 mt-1">{((examScore.score * 20) / 100).toFixed(1)} / 20</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">Design accuracy & motifs</p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase">Material & Quality (20M)</p>
+                                            <p className="text-base font-black text-slate-800 mt-1">
+                                                {rubricScores[studentId]?.materialQuality !== undefined
+                                                    ? rubricScores[studentId].materialQuality
+                                                    : ((examScore.score * 20) / 100).toFixed(1)} / 20
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Zero-defect finish & zero-waste</p>
                                         </div>
                                         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                             <p className="text-[10px] text-slate-500 font-bold uppercase">Viva Voce & Theory (20M)</p>
-                                            <p className="text-base font-black text-slate-800 mt-1">{((examScore.score * 20) / 100).toFixed(1)} / 20</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">Artisan oral defense</p>
+                                            <p className="text-base font-black text-slate-800 mt-1">
+                                                {rubricScores[studentId]?.vivaTheory !== undefined
+                                                    ? rubricScores[studentId].vivaTheory
+                                                    : ((examScore.score * 20) / 100).toFixed(1)} / 20
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Artisan oral defense & SOP</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1001,7 +1037,7 @@ export default function TraineePortal({ currentUser, activeSection = 'trainee-pr
                         {/* Detailed Verified Session Attendance Log Table */}
                         <div>
                             <h4 className="font-bold text-slate-800 text-xs mb-2.5 flex items-center justify-between">
-                                <span>Verified Session Logs Recorded in MySQL Database:</span>
+                                <span>Verified Session Logs Recorded in University Academic Registry:</span>
                                 <span className="text-[10px] text-slate-400 font-normal">Source: Biometric & Studio Ledger</span>
                             </h4>
 

@@ -13,6 +13,8 @@ import ProductionUnit from './components/ProductionUnit';
 import DualWarehouse from './components/DualWarehouse';
 import SalesPOS from './components/SalesPOS';
 import AIForecasting from './components/AIForecasting';
+import QualityDefectCenter from './components/QualityDefectCenter';
+import FeedbackCertificationHub from './components/FeedbackCertificationHub';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -245,11 +247,22 @@ export default function App() {
               )}
 
               {activeTab === 'sales' && (
-                  <SalesPOS />
+                  <SalesPOS onNavigateTab={setActiveTab} />
               )}
 
               {activeTab === 'forecast' && (
                   <AIForecasting />
+              )}
+
+              {activeTab === 'qa-defects' && (
+                  <QualityDefectCenter currentUser={currentUser} />
+              )}
+
+              {['feedback-hub', 'certifications-placements'].includes(activeTab) && (
+                  <FeedbackCertificationHub
+                      currentUser={currentUser}
+                      initialMode={activeTab}
+                  />
               )}
             </div>
 

@@ -465,9 +465,20 @@ export default function DualWarehouse({ onNavigateTab }) {
                         <span className="hidden sm:inline">Refresh Sync</span>
                     </button>
 
+                    {onNavigateTab && (
+                        <button
+                            onClick={() => onNavigateTab('qa-defects')}
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                            title="Report damaged raw materials, broken finished goods, or scrap write-offs"
+                        >
+                            <AlertTriangle size={15} />
+                            <span>Report Damage / Scrap Log</span>
+                        </button>
+                    )}
+
                     <button
                         onClick={() => handleOpenRestockModal()}
-                        className="bg-[#006837] hover:bg-[#004d28] text-white px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                        className="bg-[#006837] hover:bg-[#004d28] text-white px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
                         title="Inward fresh raw material stock"
                     >
                         <PlusCircle size={15} />

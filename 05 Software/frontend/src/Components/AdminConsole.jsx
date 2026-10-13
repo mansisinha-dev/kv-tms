@@ -690,7 +690,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
 
             await axios.post(`${API_BASE_URL}/academics/courses`, payload);
 
-            setNotification(`✓ Course "${payload.name}" (${payload.code}) with ${validModules.length} syllabus modules created in MySQL!`);
+            setNotification(`✓ Course "${payload.name}" (${payload.code}) with ${validModules.length} syllabus modules registered in University Vocational Registry!`);
             setTimeout(() => setNotification(''), 4500);
 
             setIsCourseModalOpen(false);
@@ -1316,7 +1316,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
             if (res.data && Array.isArray(res.data) && res.data.length > 0) {
                 setUsers(res.data);
                 localStorage.setItem('kvtms_user_registry', JSON.stringify(res.data));
-                setNotification(`✓ Successfully enrolled ${newUser.name} (${newUser.username}) into MySQL database!`);
+                setNotification(`✓ Successfully enrolled ${newUser.name} (${newUser.username}) into University Vocational Registry!`);
                 setIsModalOpen(false);
                 fetchCoursesFromDb();
                 return;
@@ -3483,10 +3483,10 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                         <div>
                             <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                                 <BookOpen size={18} className="text-indigo-600" />
-                                Vocational Training Courses & Official Syllabus
+                                Vocational Training Courses & Official NSQF Syllabus
                             </h3>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Manage courses, toggle active/inactive status, inspect enrolled trainers & trainees, or delete courses from MySQL.
+                                Manage NSQF-aligned trade courses, toggle active/inactive status, inspect enrolled trainers &amp; scholars, and maintain syllabus modules.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -3609,7 +3609,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                     {/* Courses Cards Grid */}
                     {loadingCourses ? (
                         <div className="bg-white rounded-xl p-12 text-center border border-slate-200 text-xs text-slate-500">
-                            Loading vocational courses and curriculum from database...
+                            Loading vocational courses and curriculum from University Registry...
                         </div>
                     ) : courses.length === 0 ? (
                         <div className="bg-white rounded-xl p-12 text-center border border-dashed border-slate-300">
@@ -3649,9 +3649,15 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                                             {/* Course Card Top Header */}
                                             <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
                                                 <div>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
                                                         <span className="bg-indigo-100 text-indigo-800 text-xs font-mono font-bold px-2 py-0.5 rounded">
                                                             {course.code}
+                                                        </span>
+                                                        <span className="bg-purple-50 text-purple-800 border border-purple-200 text-[10px] font-bold px-2 py-0.5 rounded">
+                                                            NSQF Level-4
+                                                        </span>
+                                                        <span className="bg-emerald-50 text-[#006837] border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded">
+                                                            ₹0 Fee (Free Tribal Grant)
                                                         </span>
                                                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${
                                                             course.active 
@@ -3888,7 +3894,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                                     Enrolled Faculty & Scholars: {enrollmentCourse.name}
                                 </h3>
                                 <p className="text-xs text-green-100 mt-0.5">
-                                    Direct live enrollment roster loaded from KISS University MySQL database
+                                    Direct live enrollment roster loaded from KISS University Vocational Registry
                                 </p>
                             </div>
                             <button
@@ -4043,7 +4049,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                         {/* Footer */}
                         <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
                             <span className="text-[11px] text-slate-500">
-                                * Official KISS Vocational Training Roster synced with MySQL
+                                * Official KISS Vocational Training Roster synced with University Registry
                             </span>
                             <button
                                 onClick={() => setIsEnrollmentModalOpen(false)}
@@ -4352,7 +4358,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                         {/* Footer */}
                         <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
                             <span className="text-[11px] text-slate-500">
-                                * Official KISS Vocational Curriculum stored in MySQL
+                                * Official KISS Vocational Curriculum stored in University Registry
                             </span>
                             <button
                                 onClick={() => setSelectedCourseForSyllabus(null)}

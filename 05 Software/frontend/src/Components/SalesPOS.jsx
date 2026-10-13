@@ -25,7 +25,7 @@ import {
     Mail
 } from 'lucide-react';
 
-export default function SalesPOS() {
+export default function SalesPOS({ onNavigateTab }) {
     const todayStr = new Date().toISOString().split('T')[0];
 
     // Order Booking Form state
@@ -376,18 +376,38 @@ export default function SalesPOS() {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     <button
                         onClick={fetchPOSData}
-                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold border border-slate-200 transition-colors flex items-center gap-1.5"
+                        className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
                         title="Refresh live catalog and stock"
                     >
                         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                         <span className="hidden sm:inline">Sync Stock</span>
                     </button>
-                    <div className="bg-rose-50 border border-rose-200 px-4 py-2 rounded-lg text-rose-900 text-xs font-semibold flex items-center gap-2">
+                    {onNavigateTab && (
+                        <>
+                            <button
+                                onClick={() => onNavigateTab('qa-defects')}
+                                className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                                title="Log customer defective product return or exchange"
+                            >
+                                <AlertCircle size={14} className="text-amber-600" />
+                                <span>Defective Return / Exchange</span>
+                            </button>
+                            <button
+                                onClick={() => onNavigateTab('feedback-hub')}
+                                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-[#006837] border border-emerald-200 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                                title="Record customer product quality rating & review"
+                            >
+                                <ShieldCheck size={14} className="text-[#006837]" />
+                                <span>Buyer Quality Reviews (4.8★)</span>
+                            </button>
+                        </>
+                    )}
+                    <div className="bg-rose-50 border border-rose-200 px-3.5 py-2 rounded-lg text-rose-900 text-xs font-semibold flex items-center gap-2">
                         <ShoppingCart size={16} className="text-rose-600" />
-                        <span>Central Campus POS Counter #1</span>
+                        <span>POS Counter #1</span>
                     </div>
                 </div>
             </div>
