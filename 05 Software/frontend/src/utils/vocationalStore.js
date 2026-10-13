@@ -6,14 +6,14 @@
 // ============================================================================
 
 const KEYS = {
-    QA_INSPECTIONS: 'kvtms_qa_inspections_v3_live',
-    DAMAGE_LOGS: 'kvtms_damage_logs_v3_live',
-    EQUIPMENT_LOGS: 'kvtms_equipment_logs_v3_live',
-    FEEDBACK_LOGS: 'kvtms_feedback_logs_v3_live',
-    TRAINER_SKILL_NOTES: 'kvtms_trainer_skill_notes_v3_live',
-    PLACEMENTS: 'kvtms_placements_v3_live',
-    POS_RETURNS: 'kvtms_pos_returns_v3_live',
-    RUBRIC_SCORES: 'kvtms_rubric_scores_v3_live'
+    QA_INSPECTIONS: 'kvtms_qa_inspections_v4_live',
+    DAMAGE_LOGS: 'kvtms_damage_logs_v4_live',
+    EQUIPMENT_LOGS: 'kvtms_equipment_logs_v4_live',
+    FEEDBACK_LOGS: 'kvtms_feedback_logs_v4_live',
+    TRAINER_SKILL_NOTES: 'kvtms_trainer_skill_notes_v4_live',
+    PLACEMENTS: 'kvtms_placements_v4_live',
+    POS_RETURNS: 'kvtms_pos_returns_v4_live',
+    RUBRIC_SCORES: 'kvtms_rubric_scores_v4_live'
 };
 
 // Default Seed Data for QA Inspections (Aligned with real batches in DataInitializer.java)
@@ -183,6 +183,20 @@ const DEFAULT_FEEDBACK_LOGS = [
     {
         id: 'FDB-2026-02',
         date: '2026-10-10',
+        sourceRole: 'TRAINEE',
+        submittedById: 'KISS-TRN-2026-003',
+        submittedBy: 'Bikash Soren (KISS-TRN-2026-003)',
+        tradeOrProduct: 'Handicrafts & Tribal Art (VOC-ART-102)',
+        category: 'TRAINING_AND_LAB_FEEDBACK',
+        rating: 5,
+        subject: 'Sambalpuri Ikat Loom Tie-Dye & Bamboo Lamp Carving Lab',
+        message: 'Prof. Sanatan Marndi’s practical studio guidance on herbal dye fixation and bamboo node seasoning improved our batch finish significantly.',
+        status: 'RESOLVED',
+        adminResponse: 'Reviewed by Faculty Trainer (Prof. Sanatan Marndi). Keep maintaining uniform warp tension on Pit-Loom #2!'
+    },
+    {
+        id: 'FDB-2026-03',
+        date: '2026-10-10',
         sourceRole: 'CUSTOMER_BUYER',
         submittedById: 'BUYER-POS',
         submittedBy: 'Showroom Exhibition Visitor (POS Invoice #INV-2026-001)',
@@ -201,9 +215,22 @@ const DEFAULT_TRAINER_SKILL_NOTES = [
     {
         id: 'SKN-101',
         date: '2026-10-10',
+        traineeId: 'KISS-TRN-2026-003',
+        traineeName: 'Bikash Soren',
+        trainerName: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        trade: 'Handicrafts & Tribal Art (VOC-ART-102)',
+        competencyArea: 'Sambalpuri Ikat Warp Tension & Bamboo Node Seasoning',
+        skillObservation: 'Demonstrates high precision in traditional Sambalpuri ikat border alignment and natural lacquer polishing during studio lab sessions.',
+        defectPreventionTip: 'Verify shuttle thread tension every 15 cm on the pit-loom to prevent selvage pulling, and check moisture levels before varnishing bamboo lamp bases.',
+        practicalHoursLogged: 168,
+        requiredHours: 180
+    },
+    {
+        id: 'SKN-102',
+        date: '2026-10-10',
         traineeId: 'KISS-TRN-2026-001',
         traineeName: 'Laxman Majhi',
-        trainerName: 'Prof. Sanatan Marndi (KISS-FAC-001)',
+        trainerName: 'Master Apparel Faculty (VOC-SEW-101)',
         trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)',
         competencyArea: 'Seam Tension, Collar Symmetry & Wooden Button Reinforcement',
         skillObservation: 'Demonstrates strong control on straight lockstitch during Handcrafted Cotton Kurti production (BATCH-2026-SEW-001). Maintained high precision on tribal neckline embroidery.',
@@ -229,6 +256,22 @@ const DEFAULT_PLACEMENTS = [
         partnerOrganization: 'Boyanika / Odisha State Handloom & Apparel Cooperative',
         roleOffered: 'Apprentice Garment Quality & Production Technician',
         monthlyStipendOrIncome: 14500,
+        status: 'PLACED_AND_CERTIFIED'
+    },
+    {
+        id: 'PLC-2026-02',
+        traineeId: 'KISS-TRN-2026-003',
+        traineeName: 'Bikash Soren',
+        tribeAndDistrict: 'Scheduled Tribe (KISS Scholar) • Odisha',
+        trade: 'Handicrafts & Tribal Art (VOC-ART-102)',
+        nsqfLevel: 'NSQF Level 4 (Master Artisan — Handloom & Tribal Craft)',
+        attendancePct: 94.0,
+        examScore: 92,
+        certificateNo: 'KISS-NSDC-2026-ART-003',
+        pathwayType: 'SELF_EMPLOYMENT_COOPERATIVE',
+        partnerOrganization: 'Utkalika — Odisha State Cooperative Handicrafts Corporation',
+        roleOffered: 'Certified Master Tribal Craft & Handloom Artisan',
+        monthlyStipendOrIncome: 15500,
         status: 'PLACED_AND_CERTIFIED'
     }
 ];

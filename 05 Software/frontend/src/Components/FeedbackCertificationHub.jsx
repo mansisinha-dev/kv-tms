@@ -20,6 +20,25 @@ import { VocationalStore } from '../utils/vocationalStore';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
+const extractCourseCode = (str = '') => {
+    const match = String(str).toUpperCase().match(/VOC-[A-Z]+-\d+/);
+    return match ? match[0] : '';
+};
+
+const isSameTrade = (trainerTradeStr, studentTradeStr) => {
+    if (!trainerTradeStr || !studentTradeStr) return true;
+    const codeA = extractCourseCode(trainerTradeStr);
+    const codeB = extractCourseCode(studentTradeStr);
+    if (codeA && codeB) return codeA === codeB;
+    const normA = String(trainerTradeStr).toLowerCase();
+    const normB = String(studentTradeStr).toLowerCase();
+    if (normA.includes('sewing') && normB.includes('sewing')) return true;
+    if (normA.includes('handicraft') && normB.includes('handicraft')) return true;
+    if (normA.includes('food') && normB.includes('food')) return true;
+    if (normA.includes('carpentry') && normB.includes('carpentry')) return true;
+    return normA.includes(normB) || normB.includes(normA);
+};
+
 export default function FeedbackCertificationHub({ currentUser, initialMode = 'feedback' }) {
     const rawRole = (currentUser?.role || currentUser?.username || '').toUpperCase();
     const isTrainee = rawRole.includes('TRAINEE') || rawRole.includes('TRN');
@@ -28,6 +47,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
     const isAdmin = rawRole.includes('ADMIN') || rawRole.includes('ADM');
     const myCollegeId = currentUser?.collegeId || currentUser?.username || 'KISS-TRN-2026-001';
     const myFullName = currentUser?.fullName || currentUser?.name || 'Laxman Majhi';
+    const [trainerTrade, setTrainerTrade] = useState(currentUser?.trade || currentUser?.specialization || '');
 
     const [activeSection, setActiveSection] = useState(
         initialMode === 'certifications-placements'
@@ -106,19 +126,38 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
     const loadLiveAcademicData = async () => {
         setSyncingLive(true);
         try {
+            let activeTrade = trainerTrade;
+            if (isTrainer) {
+                try {
+                    const profRes = await axios.get(`${API_BASE_URL}/auth/profile/${myCollegeId}`);
+                    if (profRes.data && (profRes.data.trade || profRes.data.specialization)) {
+                        activeTrade = profRes.data.trade || profRes.data.specialization;
+                        setTrainerTrade(activeTrade);
+                    }
+                } catch (e) {}
+            }
+
             const [usersRes, coursesRes, prodRes] = await Promise.allSettled([
-                axios.get(`${API_BASE_URL}/auth/users`),
+                axios.get(`${API_BASE_URL}/academics/trainees`),
                 axios.get(`${API_BASE_URL}/academics/courses`),
                 axios.get(`${API_BASE_URL}/inventory/finished-goods`)
             ]);
 
             let trainees = [];
-            if (usersRes.status === 'fulfilled' && Array.isArray(usersRes.value.data)) {
-                trainees = usersRes.value.data.filter(u => {
-                    const r = (u.role || '').toUpperCase();
-                    return r.includes('TRAINEE') || (u.username || u.collegeId || '').startsWith('KISS-TRN');
-                });
+            if (usersRes.status === 'fulfilled' && Array.isArray(usersRes.value.data) && usersRes.value.data.length > 0) {
+                trainees = usersRes.value.data;
+            } else {
+                try {
+                    const fallbackUsers = await axios.get(`${API_BASE_URL}/auth/users`);
+                    if (Array.isArray(fallbackUsers.data)) {
+                        trainees = fallbackUsers.data.filter(u => {
+                            const r = (u.role || '').toUpperCase();
+                            return r.includes('TRAINEE') || (u.username || u.collegeId || '').startsWith('KISS-TRN');
+                        });
+                    }
+                } catch (e) {}
             }
+
             if (trainees.length === 0) {
                 trainees = [{
                     collegeId: 'KISS-TRN-2026-001',
@@ -128,7 +167,13 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                     trade: 'Sewing & Apparel Manufacturing (VOC-SEW-101)'
                 }];
             }
-            setEnrolledTrainees(trainees);
+
+            // Filter enrolled trainees for Trainer's trade dropdown
+            const filteredTrainees = isTrainer && activeTrade
+                ? trainees.filter(t => isSameTrade(activeTrade, t.trade || t.courseName))
+                : trainees;
+
+            setEnrolledTrainees(filteredTrainees.length > 0 ? filteredTrainees : trainees);
 
             if (coursesRes.status === 'fulfilled' && Array.isArray(coursesRes.value.data)) {
                 setCoursesList(coursesRes.value.data);
@@ -324,8 +369,8 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
         )
         : isTrainer
         ? feedbackList.filter(fb =>
-            fb.sourceRole === 'TRAINEE' ||
-            fb.sourceRole === 'TRAINER'
+            (fb.sourceRole === 'TRAINEE' || fb.sourceRole === 'TRAINER') &&
+            (!trainerTrade || isSameTrade(trainerTrade, fb.tradeOrProduct))
         )
         : isProdMgr
         ? feedbackList.filter(fb =>
@@ -337,6 +382,11 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
 
     const visibleSkillNotes = isTrainee
         ? skillNotes.filter(note => note.traineeId === myCollegeId)
+        : isTrainer
+        ? skillNotes.filter(note =>
+            (!trainerTrade || isSameTrade(trainerTrade, note.trade)) ||
+            (note.trainerName && note.trainerName.includes(myCollegeId))
+        )
         : skillNotes;
 
     // Enrich placements with live attendance % and live exam score from backend

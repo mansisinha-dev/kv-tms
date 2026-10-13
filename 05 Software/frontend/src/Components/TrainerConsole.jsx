@@ -298,13 +298,39 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
         }
     };
 
-    // Load Student Leaves (Pending)
-    const loadStudentLeaves = async () => {
+    // Helper to extract course code (e.g., VOC-ART-102, VOC-SEW-101)
+    const extractCourseCode = (str = '') => {
+        const match = String(str).toUpperCase().match(/VOC-[A-Z]+-\d+/);
+        return match ? match[0] : '';
+    };
+
+    const isSameTrade = (trainerTradeStr, studentTradeStr) => {
+        if (!trainerTradeStr || !studentTradeStr) return true;
+        const codeA = extractCourseCode(trainerTradeStr);
+        const codeB = extractCourseCode(studentTradeStr);
+        if (codeA && codeB) return codeA === codeB;
+        const normA = String(trainerTradeStr).toLowerCase();
+        const normB = String(studentTradeStr).toLowerCase();
+        if (normA.includes('sewing') && normB.includes('sewing')) return true;
+        if (normA.includes('handicraft') && normB.includes('handicraft')) return true;
+        if (normA.includes('food') && normB.includes('food')) return true;
+        if (normA.includes('carpentry') && normB.includes('carpentry')) return true;
+        return normA.includes(normB) || normB.includes(normA);
+    };
+
+    // Load Student Leaves (Pending - filtered to Trainer's own trade scholars)
+    const loadStudentLeaves = async (allowedRollsSet) => {
         setLoadingStudentLeaves(true);
         try {
             const res = await axios.get(`${API_BASE_URL}/leaves/pending`);
             if (Array.isArray(res.data)) {
-                setStudentLeaves(res.data);
+                const filtered = allowedRollsSet && allowedRollsSet.size > 0
+                    ? res.data.filter(l => {
+                        const sid = l.collegeId || l.studentId || l.username || '';
+                        return allowedRollsSet.has(sid);
+                    })
+                    : res.data;
+                setStudentLeaves(filtered);
             }
         } catch (err) {
             console.error("Load student leaves error:", err);
@@ -316,34 +342,91 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
     // Initial Data Fetching from MySQL Database
     useEffect(() => {
         const fetchAllBackendData = async () => {
-            // 1. Fetch Trainees
+            // 0. Fetch Trainer Profile first so we know their exact Trade Department
+            let resolvedTrainerTrade = departmentName;
+            try {
+                const pRes = await axios.get(`${API_BASE_URL}/auth/profile/${staffId}`);
+                if (pRes.data) {
+                    resolvedTrainerTrade = pRes.data.trade || pRes.data.specialization || resolvedTrainerTrade;
+                    setProfileData(prev => ({
+                        ...prev,
+                        ...pRes.data,
+                        trade: resolvedTrainerTrade || prev.trade,
+                        address: pRes.data.address || prev.address,
+                        bloodGroup: pRes.data.bloodGroup || prev.bloodGroup,
+                        joiningDate: pRes.data.dateOfJoining || pRes.data.joiningDate || prev.joiningDate
+                    }));
+                }
+            } catch (e) {}
+
+            // Fetch users map to enrich real student emails
+            const emailByRoll = {};
+            try {
+                const uRes = await axios.get(`${API_BASE_URL}/auth/users`);
+                if (Array.isArray(uRes.data)) {
+                    uRes.data.forEach(u => {
+                        const cid = u.collegeId || u.username;
+                        if (cid && u.email) {
+                            emailByRoll[cid] = u.email;
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            // 1. Fetch Trainees & Filter Strictly by Trainer's Trade Department
             let traineesList = [];
             try {
                 const res = await axios.get(`${API_BASE_URL}/academics/trainees`);
                 if (Array.isArray(res.data) && res.data.length > 0) {
-                    traineesList = res.data;
+                    const enrichedAll = res.data.map(t => {
+                        const roll = t.collegeId || t.username || '';
+                        return {
+                            ...t,
+                            email: t.email || emailByRoll[roll] || `${roll.toLowerCase()}@kiss.ac.in`
+                        };
+                    });
+
+                    traineesList = resolvedTrainerTrade
+                        ? enrichedAll.filter(t => isSameTrade(resolvedTrainerTrade, t.trade || t.courseName))
+                        : enrichedAll;
+
                     setEnrolledTrainees(traineesList);
-                    if (traineesList[0].courseId) {
-                        setSelectedCourseId(traineesList[0].courseId);
-                        loadSyllabus(traineesList[0].courseId);
-                    } else {
-                        loadSyllabus(2);
+
+                    // Determine courseId for Trainer's trade
+                    let targetCourseId = traineesList[0]?.courseId;
+                    if (!targetCourseId) {
+                        const code = extractCourseCode(resolvedTrainerTrade);
+                        if (code === 'VOC-SEW-101') targetCourseId = 1;
+                        else if (code === 'VOC-ART-102') targetCourseId = 2;
+                        else if (code === 'VOC-FOD-103') targetCourseId = 3;
+                        else if (code === 'VOC-CAR-104') targetCourseId = 4;
+                        else targetCourseId = 2;
                     }
-                    setSelectedStudent(traineesList[0].collegeId || traineesList[0].username);
+                    setSelectedCourseId(targetCourseId);
+                    loadSyllabus(targetCourseId);
+
+                    if (traineesList.length > 0) {
+                        setSelectedStudent(traineesList[0].collegeId || traineesList[0].username);
+                    }
                 }
             } catch (err) {
                 try {
                     const uRes = await axios.get(`${API_BASE_URL}/auth/users`);
                     if (Array.isArray(uRes.data)) {
-                        traineesList = uRes.data.filter(u => (u.role || '').toUpperCase().includes('TRAINEE'));
+                        const allTr = uRes.data.filter(u => (u.role || '').toUpperCase().includes('TRAINEE'));
+                        traineesList = resolvedTrainerTrade
+                            ? allTr.filter(u => isSameTrade(resolvedTrainerTrade, u.trade || u.courseName))
+                            : allTr;
                         setEnrolledTrainees(traineesList);
                         if (traineesList.length > 0) {
-                            setSelectedStudent(traineesList[0].username);
+                            setSelectedStudent(traineesList[0].username || traineesList[0].collegeId);
                         }
                     }
                 } catch (e) {}
                 loadSyllabus(2);
             }
+
+            const allowedRollsSet = new Set(traineesList.map(t => t.collegeId || t.username).filter(Boolean));
 
             // 2. Fetch Attendance for Selected Date
             await loadAttendanceForDate(attendanceDate, traineesList);
@@ -351,8 +434,8 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
             // 3. Fetch Full Attendance History Log
             await loadAttendanceHistory();
 
-            // 4. Fetch Pending Student Leaves
-            await loadStudentLeaves();
+            // 4. Fetch Pending Student Leaves (filtered to Trainer's own trade scholars)
+            await loadStudentLeaves(allowedRollsSet);
 
             // 5. Fetch Faculty's Own Leaves
             await loadMyFacultyLeaves();
@@ -383,21 +466,6 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                 }
                 setBatchScoresMap(scoresMap);
             }
-
-            // 8. Try fetching Trainer Profile from Backend
-            try {
-                const pRes = await axios.get(`${API_BASE_URL}/auth/profile/${staffId}`);
-                if (pRes.data) {
-                    setProfileData(prev => ({
-                        ...prev,
-                        ...pRes.data,
-                        trade: pRes.data.trade || prev.trade,
-                        address: pRes.data.address || prev.address,
-                        bloodGroup: pRes.data.bloodGroup || prev.bloodGroup,
-                        joiningDate: pRes.data.dateOfJoining || pRes.data.joiningDate || prev.joiningDate
-                    }));
-                }
-            } catch (e) {}
         };
 
         fetchAllBackendData();
@@ -2095,7 +2163,7 @@ export default function TrainerConsole({ currentUser, activeSection = 'trainer-p
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-slate-900">{trainee.fullName || trainee.name}</p>
-                                                            <p className="text-[11px] text-slate-400 font-mono">{trainee.email || 'scholar@kiss.ac.in'}</p>
+                                                            <p className="text-[11px] text-slate-400 font-mono">{trainee.email || `${roll.toLowerCase()}@kiss.ac.in`}</p>
                                                         </div>
                                                     </td>
                                                     <td className="py-3 px-3 font-mono font-semibold text-slate-700">
