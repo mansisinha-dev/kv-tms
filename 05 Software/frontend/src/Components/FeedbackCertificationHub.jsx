@@ -24,6 +24,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
     const rawRole = (currentUser?.role || currentUser?.username || '').toUpperCase();
     const isTrainee = rawRole.includes('TRAINEE') || rawRole.includes('TRN');
     const isTrainer = rawRole.includes('TRAINER') || rawRole.includes('FAC');
+    const isProdMgr = rawRole.includes('PRODUCTION') || rawRole.includes('PRD');
     const isAdmin = rawRole.includes('ADMIN') || rawRole.includes('ADM');
     const myCollegeId = currentUser?.collegeId || currentUser?.username || 'KISS-TRN-2026-001';
     const myFullName = currentUser?.fullName || currentUser?.name || 'Laxman Majhi';
@@ -104,7 +105,7 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
             const [usersRes, coursesRes, prodRes] = await Promise.allSettled([
                 axios.get(`${API_BASE_URL}/auth/users`),
                 axios.get(`${API_BASE_URL}/academics/courses`),
-                axios.get(`${API_BASE_URL}/inventory/products`)
+                axios.get(`${API_BASE_URL}/inventory/finished-goods`)
             ]);
 
             let trainees = [];
@@ -129,7 +130,10 @@ export default function FeedbackCertificationHub({ currentUser, initialMode = 'f
                 setCoursesList(coursesRes.value.data);
             }
             if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value.data)) {
-                setProductsList(prodRes.value.data);
+                const extractedProducts = prodRes.value.data
+                    .map(fg => fg.product || fg)
+                    .filter(p => p && p.name);
+                setProductsList(extractedProducts);
             }
 
             // Fetch live attendance % and live exam score for each enrolled trainee

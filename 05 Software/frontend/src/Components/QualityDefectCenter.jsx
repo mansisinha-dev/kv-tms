@@ -104,8 +104,8 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
         try {
             const [runsRes, prodRes, rmRes, wsRes] = await Promise.allSettled([
                 axios.get(`${API_BASE_URL}/production/runs`),
-                axios.get(`${API_BASE_URL}/inventory/products`),
-                axios.get(`${API_BASE_URL}/inventory/raw-materials`),
+                axios.get(`${API_BASE_URL}/inventory/finished-goods`),
+                axios.get(`${API_BASE_URL}/production/raw-materials`),
                 axios.get(`${API_BASE_URL}/production/workshops`)
             ]);
 
@@ -113,7 +113,10 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                 setLiveBatches(runsRes.value.data);
             }
             if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value.data)) {
-                setLiveProducts(prodRes.value.data);
+                const extractedProducts = prodRes.value.data
+                    .map(fg => fg.product || fg)
+                    .filter(p => p && p.name);
+                setLiveProducts(extractedProducts);
             }
             if (rmRes.status === 'fulfilled' && Array.isArray(rmRes.value.data)) {
                 setLiveRawMaterials(rmRes.value.data);
