@@ -57,6 +57,15 @@ import {
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 export default function AdminConsole({ activeSection = 'courses', onNavigateSection, currentUser }) {
+    let resolvedUser = currentUser;
+    if (!resolvedUser) {
+        try {
+            resolvedUser = JSON.parse(localStorage.getItem('kvtms_user') || '{}');
+        } catch (e) {}
+    }
+    const rawRole = (resolvedUser?.role || resolvedUser?.username || '').toUpperCase();
+    const isAdmin = rawRole.includes('ADMIN') || rawRole.includes('ADM');
+
     const [subTab, setSubTab] = useState(activeSection === 'admin' ? 'courses' : (activeSection || 'courses'));
 
     useEffect(() => {
@@ -3248,13 +3257,19 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                                 <RefreshCw size={13} className={loadingNotices ? 'animate-spin' : ''} />
                                 Refresh
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setIsCreateNoticeModalOpen(true)}
-                                className="bg-[#006837] hover:bg-[#004d28] text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow"
-                            >
-                                <Megaphone size={15} /> Post New Notice
-                            </button>
+                            {isAdmin ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCreateNoticeModalOpen(true)}
+                                    className="bg-[#006837] hover:bg-[#004d28] text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow"
+                                >
+                                    <Megaphone size={15} /> Post New Notice
+                                </button>
+                            ) : (
+                                <span className="bg-slate-100 text-slate-600 text-xs px-2.5 py-1.5 rounded-lg font-semibold border border-slate-200">
+                                    Official Viewer Mode
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -3427,26 +3442,28 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                                                         )}
                                                     </div>
 
-                                                    <div className="flex items-center gap-1 shrink-0">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleTogglePinNotice(notice.id)}
-                                                            className={`p-1 rounded transition text-xs ${
-                                                                notice.pinned ? 'text-amber-600 hover:bg-amber-100' : 'text-slate-400 hover:bg-slate-100'
-                                                            }`}
-                                                            title={notice.pinned ? "Unpin notice" : "Pin notice to top"}
-                                                        >
-                                                            <Pin size={14} className={notice.pinned ? "fill-amber-600" : ""} />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleDeleteNotice(notice.id, notice.title)}
-                                                            className="p-1 rounded text-rose-500 hover:bg-rose-50 transition"
-                                                            title="Delete notice"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
+                                                    {isAdmin && (
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleTogglePinNotice(notice.id)}
+                                                                className={`p-1 rounded transition text-xs ${
+                                                                    notice.pinned ? 'text-amber-600 hover:bg-amber-100' : 'text-slate-400 hover:bg-slate-100'
+                                                                }`}
+                                                                title={notice.pinned ? "Unpin notice" : "Pin notice to top"}
+                                                            >
+                                                                <Pin size={14} className={notice.pinned ? "fill-amber-600" : ""} />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteNotice(notice.id, notice.title)}
+                                                                className="p-1 rounded text-rose-500 hover:bg-rose-50 transition"
+                                                                title="Delete notice"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Notice Title */}

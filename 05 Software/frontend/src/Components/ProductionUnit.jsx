@@ -88,6 +88,42 @@ const WORKSHOPS_CONFIG = [
     }
 ];
 
+const DEFAULT_PRODUCTION_BULLETINS = [
+    {
+        id: 'pb-1',
+        title: "Workshop Safety & Juki Lockstitch Machine Calibration Advisory",
+        content: "All sewing & tailoring lab instructors and production team members must complete daily machine oiling, needle inspection, and bobbin tension checks before commencing bulk uniform production. Report any mechanical play to maintenance.",
+        targetAudience: "PRODUCTION",
+        priority: "URGENT",
+        category: "WORKSHOP",
+        postedBy: "Director of Vocational Studies",
+        pinned: true,
+        createdAt: new Date().toISOString()
+    },
+    {
+        id: 'pb-2',
+        title: "KISS Central Warehouse: Combed Cotton & Bamboo Stock Inward Clearance",
+        content: "Fresh consignments of combed cotton fabric (Batch MAT-RAW-001: 250m) and handicraft bamboo poles have arrived at Dual Warehouse #2. Requisition slips must be signed by the Production Manager prior to cutting floor release.",
+        targetAudience: "PRODUCTION",
+        priority: "IMPORTANT",
+        category: "PRODUCTION_ADVISORY",
+        postedBy: "Dual Warehouse Head",
+        pinned: false,
+        createdAt: new Date().toISOString()
+    },
+    {
+        id: 'pb-3',
+        title: "Annual NSQF Skill Exhibition & Commercial Showcase 2026",
+        content: "All trade workshops to submit final artisan collections for state showroom exhibition and commercial POS retail release.",
+        targetAudience: "ALL",
+        priority: "IMPORTANT",
+        category: "ACADEMIC",
+        postedBy: "Dr. Debashis Mohanty",
+        pinned: true,
+        createdAt: new Date().toISOString()
+    }
+];
+
 export default function ProductionUnit({ currentUser, onNavigateTab }) {
     // Safely determine Role
     let resolvedUser = currentUser;
@@ -173,7 +209,7 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
     const [rejectSubmitting, setRejectSubmitting] = useState(false);
 
     // Official Production Bulletins & Notices from Admin
-    const [productionNotices, setProductionNotices] = useState([]);
+    const [productionNotices, setProductionNotices] = useState(DEFAULT_PRODUCTION_BULLETINS);
 
     // Dynamic enrolled trainees from user registry & live database
     const [traineesList, setTraineesList] = useState(() => {
@@ -193,6 +229,32 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
 
     // Multi-artisan selection for batch assignment
     const [selectedTrainees, setSelectedTrainees] = useState([]);
+
+    // 1-Click Demo Input for Batch Scheduling
+    const handleFillDemoBatch = () => {
+        const randNum = Math.floor(100 + Math.random() * 900);
+        const prefix = currentWorkshop?.shortName ? currentWorkshop.shortName.substring(0, 3).toUpperCase() : 'SEW';
+        const demoCode = `BATCH-${new Date().getFullYear()}-${prefix}-00${randNum % 10}`;
+        setBatchCode(demoCode);
+        setTargetQuantity('10');
+        
+        // Auto-select up to 3 non-busy apprentice scholars
+        const available = traineesList.filter(t => !getActiveBatchForTrainee(t.username || t.collegeId));
+        const toSelect = (available.length > 0 ? available.slice(0, 3) : traineesList.slice(0, 3)).map(t => t.username || t.collegeId);
+        setSelectedTrainees(toSelect);
+
+        showToast(`⚡ Demo batch input loaded! Code: ${demoCode}, Target: 10 units, and ${toSelect.length} apprentice scholars assigned.`, 'success');
+    };
+
+    // Auto-preselect available scholars on initial load if none selected
+    useEffect(() => {
+        if (selectedTrainees.length === 0 && traineesList.length > 0) {
+            const available = traineesList.filter(t => !getActiveBatchForTrainee(t.username || t.collegeId));
+            if (available.length > 0) {
+                setSelectedTrainees(available.slice(0, 3).map(t => t.username || t.collegeId));
+            }
+        }
+    }, [traineesList, runs]);
 
     // Helper: Identify if a trainee is already allotted to an active/in-progress batch
     const getActiveBatchForTrainee = (username) => {
@@ -1021,66 +1083,75 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
             </div>
 
             {/* Official Production Bulletins & Directives from Administration */}
-            {productionNotices.length > 0 && (
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                            <span className="p-1.5 bg-amber-50 text-amber-700 rounded-lg">
-                                <Megaphone size={16} />
-                            </span>
-                            <h3 className="font-bold text-slate-800 text-sm">Official Production Bulletins & Workshop Advisories</h3>
-                            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                {productionNotices.length} {productionNotices.length === 1 ? 'Bulletin' : 'Bulletins'}
-                            </span>
-                        </div>
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
+                    <div className="flex items-center gap-2">
+                        <span className="p-1.5 bg-amber-50 text-amber-700 rounded-lg">
+                            <Megaphone size={16} />
+                        </span>
+                        <h3 className="font-bold text-slate-800 text-sm">Official Production Bulletins & Workshop Advisories</h3>
+                        <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            {productionNotices.length} {productionNotices.length === 1 ? 'Bulletin' : 'Bulletins'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
                         <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
                             <Pin size={12} className="text-amber-500" /> Executive Directives
                         </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                        {productionNotices.map((n) => (
-                            <div 
-                                key={n.id} 
-                                className={`p-3.5 rounded-lg border transition ${
-                                    n.pinned 
-                                        ? 'bg-amber-50/20 border-amber-300 ring-1 ring-amber-200/50' 
-                                        : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                                }`}
+                        {onNavigateTab && (
+                            <button
+                                type="button"
+                                onClick={() => onNavigateTab('notice-board')}
+                                className="text-xs bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer"
                             >
-                                <div className="flex items-start justify-between gap-2 mb-1.5">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                            n.priority === 'URGENT' ? 'bg-rose-100 text-rose-800' :
-                                            n.priority === 'IMPORTANT' ? 'bg-amber-100 text-amber-800' :
-                                            'bg-emerald-100 text-emerald-800'
-                                        }`}>
-                                            {n.priority || 'NORMAL'}
-                                        </span>
-                                        <span className="text-[9px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-semibold uppercase">
-                                            {n.category || 'OPERATIONS'}
-                                        </span>
-                                        {n.pinned && (
-                                            <span className="text-[9px] text-amber-700 font-bold flex items-center gap-0.5">
-                                                <Pin size={10} className="fill-amber-600" /> Pinned
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-mono">
-                                        {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : 'Active'}
-                                    </span>
-                                </div>
-                                <h4 className="text-xs font-bold text-slate-900 mb-1">{n.title}</h4>
-                                <p className="text-[11px] text-slate-600 leading-relaxed">{n.content}</p>
-                                <div className="mt-2.5 pt-1.5 border-t border-slate-200/50 flex items-center justify-between text-[10px] text-slate-400">
-                                    <span>Issued by: <strong className="text-slate-600">{n.postedBy || 'University Administration'}</strong></span>
-                                    <span className="text-amber-800 font-semibold font-mono">{n.targetAudience}</span>
-                                </div>
-                            </div>
-                        ))}
+                                <Bell size={12} className="text-amber-600" /> View Full Notice Board →
+                            </button>
+                        )}
                     </div>
                 </div>
-            )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {productionNotices.map((n) => (
+                        <div 
+                            key={n.id} 
+                            className={`p-3.5 rounded-lg border transition ${
+                                n.pinned 
+                                    ? 'bg-amber-50/20 border-amber-300 ring-1 ring-amber-200/50' 
+                                    : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                        n.priority === 'URGENT' ? 'bg-rose-100 text-rose-800' :
+                                        n.priority === 'IMPORTANT' ? 'bg-amber-100 text-amber-800' :
+                                        'bg-emerald-100 text-emerald-800'
+                                    }`}>
+                                        {n.priority || 'NORMAL'}
+                                    </span>
+                                    <span className="text-[9px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-semibold uppercase">
+                                        {n.category || 'OPERATIONS'}
+                                    </span>
+                                    {n.pinned && (
+                                        <span className="text-[9px] text-amber-700 font-bold flex items-center gap-0.5">
+                                            <Pin size={10} className="fill-amber-600" /> Pinned
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                    {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : 'Active'}
+                                </span>
+                            </div>
+                            <h4 className="text-xs font-bold text-slate-900 mb-1">{n.title}</h4>
+                            <p className="text-[11px] text-slate-600 leading-relaxed">{n.content}</p>
+                            <div className="mt-2.5 pt-1.5 border-t border-slate-200/50 flex items-center justify-between text-[10px] text-slate-400">
+                                <span>Issued by: <strong className="text-slate-600">{n.postedBy || 'University Administration'}</strong></span>
+                                <span className="text-amber-800 font-semibold font-mono">{n.targetAudience}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             {/* ========================================================================= */}
             {/* VIEW 1: ADMIN COMMERCIAL APPROVAL & CLEARANCE QUEUE (When in Admin Mode)   */}
@@ -1518,14 +1589,25 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
 
                         {/* 2. Schedule & Launch Production Batch */}
                         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                            <div className="flex items-center justify-between border-b pb-3 mb-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 mb-4 gap-2">
                                 <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                                     <PlusCircle size={18} className="text-amber-600" />
                                     Schedule & Launch Production Batch
                                 </h3>
-                                <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
-                                    Auto Material Deduct
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleFillDemoBatch}
+                                        className="text-xs bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                                        title="Click to auto-populate demo batch code, 10 units, and 3 available scholars"
+                                    >
+                                        <Sparkles size={13} className="text-amber-600 animate-pulse" />
+                                        ⚡ Auto-Fill Demo Input
+                                    </button>
+                                    <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
+                                        Auto Material Deduct
+                                    </span>
+                                </div>
                             </div>
 
                             <form onSubmit={handleLaunchBatch} className="space-y-3">

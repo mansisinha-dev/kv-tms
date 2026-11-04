@@ -131,6 +131,12 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
                     label: 'Buyer & Workshop Feedback',
                     desc: 'Product ratings & tool grievances',
                     icon: Award
+                },
+                {
+                    id: 'notice-board',
+                    label: 'Campus Circulars & Directives',
+                    desc: 'Official notices & workshop safety',
+                    icon: Bell
                 }
             ]
         },
