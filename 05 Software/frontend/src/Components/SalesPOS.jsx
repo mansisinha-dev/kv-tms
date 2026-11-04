@@ -28,6 +28,104 @@ import {
     Building
 } from 'lucide-react';
 
+const DEFAULT_POS_INVENTORY = [
+    {
+        id: 1,
+        availableStock: 50,
+        reservedStock: 0,
+        reorderLevel: 10,
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0, description: 'NSQF Level-4 artisan hand-stitched garment' }
+    },
+    {
+        id: 2,
+        availableStock: 35,
+        reservedStock: 0,
+        reorderLevel: 8,
+        product: { id: 2, name: 'Sambalpuri Handloom Stole', sku: 'PRD-SAM-02', sellingPrice: 1200.0, incentiveRatePerUnit: 250.0, description: 'Traditional Sambalpuri ikat silk stole' }
+    },
+    {
+        id: 3,
+        availableStock: 30,
+        reservedStock: 0,
+        reorderLevel: 5,
+        product: { id: 3, name: 'Tribal Bamboo Table Lamp', sku: 'PRD-BAM-03', sellingPrice: 850.0, incentiveRatePerUnit: 150.0, description: 'Hand-woven curved bamboo ambient lamp' }
+    },
+    {
+        id: 4,
+        availableStock: 25,
+        reservedStock: 0,
+        reorderLevel: 5,
+        product: { id: 4, name: 'Dokra Tribal Bell Figurine', sku: 'PRD-DKR-04', sellingPrice: 1450.0, incentiveRatePerUnit: 300.0, description: 'Lost-wax cast bell metal folk art figurine' }
+    },
+    {
+        id: 5,
+        availableStock: 40,
+        reservedStock: 0,
+        reorderLevel: 10,
+        product: { id: 5, name: 'Saura Ceramic Vase', sku: 'PRD-POT-05', sellingPrice: 550.0, incentiveRatePerUnit: 90.0, description: 'Hand-painted terracotta pottery with Saura tribal motifs' }
+    }
+];
+
+const DEFAULT_POS_ORDERS = [
+    {
+        rawId: 101,
+        id: 'ORD-2026-TDC-001',
+        customer: 'TDCCOL Odisha State Tribal Emporium',
+        customerContact: '9861023456',
+        customerEmail: 'procurement@tdccol.odisha.gov.in',
+        customerAddress: 'Rupali Square, Bhubaneswar',
+        item: 'Handcrafted Cotton Kurti × 15',
+        itemsList: [{ product: { name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01' }, quantity: 15, unitPrice: 650.0 }],
+        qty: 15,
+        total: 9750.0,
+        unitPrice: 650.0,
+        date: '04 Nov 2026',
+        orderDateTime: '04/11/2026, 14:30:00',
+        dispatchDate: '2026-11-04',
+        dispatchedAt: '04/11/2026, 16:00:00',
+        status: 'DISPATCHED',
+        isDispatched: true
+    },
+    {
+        rawId: 102,
+        id: 'ORD-2026-HAP-002',
+        customer: 'Apex Handloom Society, Bhubaneswar',
+        customerContact: '9437189021',
+        customerEmail: 'sales@odishahandloom.org',
+        customerAddress: 'Janpath, Saheed Nagar, Bhubaneswar',
+        item: 'Sambalpuri Handloom Stole × 10',
+        itemsList: [{ product: { name: 'Sambalpuri Handloom Stole', sku: 'PRD-SAM-02' }, quantity: 10, unitPrice: 1200.0 }],
+        qty: 10,
+        total: 12000.0,
+        unitPrice: 1200.0,
+        date: '04 Nov 2026',
+        orderDateTime: '04/11/2026, 15:15:00',
+        dispatchDate: '2026-11-04',
+        dispatchedAt: '04/11/2026, 17:30:00',
+        status: 'DISPATCHED',
+        isDispatched: true
+    },
+    {
+        rawId: 103,
+        id: 'ORD-2026-KISS-003',
+        customer: 'KISS University Souvenir & Visitor Center',
+        customerContact: '9937012345',
+        customerEmail: 'souvenirs@kiss.ac.in',
+        customerAddress: 'Campus 10, KISS University',
+        item: 'Tribal Bamboo Table Lamp × 8',
+        itemsList: [{ product: { name: 'Tribal Bamboo Table Lamp', sku: 'PRD-BAM-03' }, quantity: 8, unitPrice: 850.0 }],
+        qty: 8,
+        total: 6800.0,
+        unitPrice: 850.0,
+        date: '04 Nov 2026',
+        orderDateTime: '04/11/2026, 17:00:00',
+        dispatchDate: '2026-11-05',
+        dispatchedAt: null,
+        status: 'CONFIRMED',
+        isDispatched: false
+    }
+];
+
 export default function SalesPOS({ onNavigateTab }) {
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -38,13 +136,31 @@ export default function SalesPOS({ onNavigateTab }) {
     const [customerAddress, setCustomerAddress] = useState('');
     const [dispatchDate, setDispatchDate] = useState(todayStr);
     const [quantity, setQuantity] = useState(1);
-    const [inventoryItems, setInventoryItems] = useState([]);
-    const [selectedProductId, setSelectedProductId] = useState('');
+    const [inventoryItems, setInventoryItems] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_pos_inventory_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_POS_INVENTORY;
+    });
+    const [selectedProductId, setSelectedProductId] = useState('1');
     const [orderError, setOrderError] = useState('');
     const [orderSuccess, setOrderSuccess] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [orders, setOrders] = useState([]);
+    const [orders, setOrders] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_pos_orders_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_POS_ORDERS;
+    });
 
     // View Order Modal state
     const [viewOrder, setViewOrder] = useState(null);
@@ -73,6 +189,7 @@ export default function SalesPOS({ onNavigateTab }) {
 
             if (Array.isArray(stockRes.data) && stockRes.data.length > 0) {
                 setInventoryItems(stockRes.data);
+                localStorage.setItem('kvtms_pos_inventory_cache', JSON.stringify(stockRes.data));
                 // Default select first product that has positive availableStock
                 if (!selectedProductId || !stockRes.data.some(i => i.product?.id === Number(selectedProductId))) {
                     const inStockItem = stockRes.data.find(i => (i.availableStock || 0) > 0);
@@ -83,7 +200,7 @@ export default function SalesPOS({ onNavigateTab }) {
                 }
             }
 
-            if (Array.isArray(ordersRes.data)) {
+            if (Array.isArray(ordersRes.data) && ordersRes.data.length > 0) {
                 // Map backend order structure for UI
                 const formattedOrders = ordersRes.data.map(ord => {
                     const isDispatched = ord.status === 'DISPATCHED';
@@ -110,6 +227,7 @@ export default function SalesPOS({ onNavigateTab }) {
                 // Sort descending so newest order appears at the top
                 formattedOrders.reverse();
                 setOrders(formattedOrders);
+                localStorage.setItem('kvtms_pos_orders_cache', JSON.stringify(formattedOrders));
 
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('invoice') === '1' && formattedOrders.length > 0) {

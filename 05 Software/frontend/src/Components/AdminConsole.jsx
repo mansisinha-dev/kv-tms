@@ -559,15 +559,39 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
         }
     ];
 
+    const normalizeCourseList = (list) => {
+        if (!Array.isArray(list) || list.length === 0) return DEFAULT_COURSES;
+        return list.map(c => {
+            const def = DEFAULT_COURSES.find(dc => dc.id === c.id || dc.code === c.code) || {};
+            const syl = (c.syllabus && c.syllabus.length > 0)
+                ? c.syllabus
+                : (c.syllabusModules && c.syllabusModules.length > 0)
+                    ? c.syllabusModules
+                    : (def.syllabusModules || []);
+            const hours = c.totalHours || syl.reduce((sum, m) => sum + (m.durationHours || m.hours || 0), 0) || def.totalHours || 160;
+            const enrolled = c.enrolledCount || c.enrolledScholarsCount || def.enrolledCount || def.enrolledScholarsCount || 3;
+            return {
+                ...def,
+                ...c,
+                active: c.active !== false && c.status !== 'DEACTIVATED',
+                syllabus: syl,
+                syllabusModules: syl,
+                totalHours: hours,
+                enrolledCount: enrolled,
+                enrolledScholarsCount: enrolled
+            };
+        });
+    };
+
     const [courses, setCourses] = useState(() => {
         try {
             const cached = localStorage.getItem('kvtms_courses_cache');
             if (cached) {
                 const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) return normalizeCourseList(parsed);
             }
         } catch (e) {}
-        return DEFAULT_COURSES;
+        return normalizeCourseList(DEFAULT_COURSES);
     });
     const [loadingCourses, setLoadingCourses] = useState(false);
 
@@ -592,31 +616,34 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
         try {
             const res = await axios.get(`${API_BASE_URL}/academics/courses/detailed`);
             if (Array.isArray(res.data) && res.data.length > 0) {
-                list = res.data;
-                setCourses(res.data);
-                localStorage.setItem('kvtms_courses_cache', JSON.stringify(res.data));
+                const normalized = normalizeCourseList(res.data);
+                list = normalized;
+                setCourses(normalized);
+                localStorage.setItem('kvtms_courses_cache', JSON.stringify(normalized));
             } else {
                 const fallback = await axios.get(`${API_BASE_URL}/auth/courses`);
                 if (Array.isArray(fallback.data) && fallback.data.length > 0) {
-                    list = fallback.data;
-                    setCourses(fallback.data);
-                    localStorage.setItem('kvtms_courses_cache', JSON.stringify(fallback.data));
+                    const normalized = normalizeCourseList(fallback.data);
+                    list = normalized;
+                    setCourses(normalized);
+                    localStorage.setItem('kvtms_courses_cache', JSON.stringify(normalized));
                 }
             }
         } catch (err) {
             try {
                 const fallback = await axios.get(`${API_BASE_URL}/auth/courses`);
                 if (Array.isArray(fallback.data) && fallback.data.length > 0) {
-                    list = fallback.data;
-                    setCourses(fallback.data);
-                    localStorage.setItem('kvtms_courses_cache', JSON.stringify(fallback.data));
+                    const normalized = normalizeCourseList(fallback.data);
+                    list = normalized;
+                    setCourses(normalized);
+                    localStorage.setItem('kvtms_courses_cache', JSON.stringify(normalized));
                 } else {
                     const cached = localStorage.getItem('kvtms_courses_cache');
-                    if (cached) setCourses(JSON.parse(cached));
+                    if (cached) setCourses(normalizeCourseList(JSON.parse(cached)));
                 }
             } catch (e) {
                 const cached = localStorage.getItem('kvtms_courses_cache');
-                if (cached) setCourses(JSON.parse(cached));
+                if (cached) setCourses(normalizeCourseList(JSON.parse(cached)));
             }
         } finally {
             setLoadingCourses(false);
@@ -3759,8 +3786,14 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             {paginatedCourses.map((course) => {
-                                const syllabusList = course.syllabus || [];
-                                const totalHours = course.totalHours || syllabusList.reduce((acc, m) => acc + (m.durationHours || 0), 0);
+                                const defCourse = DEFAULT_COURSES.find(dc => dc.id === course.id || dc.code === course.code) || {};
+                                const syllabusList = (course.syllabus && course.syllabus.length > 0)
+                                    ? course.syllabus
+                                    : (course.syllabusModules && course.syllabusModules.length > 0)
+                                        ? course.syllabusModules
+                                        : (defCourse.syllabusModules || []);
+                                const totalHours = course.totalHours || syllabusList.reduce((acc, m) => acc + (m.durationHours || 0), 0) || defCourse.totalHours || 160;
+                                const enrolledCount = course.enrolledCount || course.enrolledScholarsCount || defCourse.enrolledCount || 3;
                                 return (
                                     <div key={course.id} className={`bg-white rounded-xl p-5 border shadow-sm flex flex-col justify-between transition-all ${
                                         course.active ? 'border-slate-200 hover:border-indigo-300' : 'border-amber-200/90 bg-slate-50/50'
@@ -3825,7 +3858,7 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                                                         <Users size={11} /> Enrolled
                                                     </p>
                                                     <p className="text-sm font-bold text-emerald-800 mt-0.5 group-hover:underline">
-                                                        {course.enrolledCount || 0} Scholars
+                                                        {enrolledCount} Scholars
                                                     </p>
                                                     <span className="text-[9px] text-emerald-600 font-semibold group-hover:text-emerald-900 block mt-0.5">
                                                         View Roster &rarr;
@@ -3868,7 +3901,13 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
                                             {/* View Full Syllabus */}
                                             <button
                                                 type="button"
-                                                onClick={() => setSelectedCourseForSyllabus(course)}
+                                                onClick={() => setSelectedCourseForSyllabus({
+                                                    ...course,
+                                                    syllabus: syllabusList,
+                                                    syllabusModules: syllabusList,
+                                                    totalHours: totalHours,
+                                                    enrolledCount: enrolledCount
+                                                })}
                                                 className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold py-2 px-2.5 rounded-lg transition flex items-center justify-center gap-1 border border-indigo-200"
                                             >
                                                 <Eye size={13} /> View Syllabus

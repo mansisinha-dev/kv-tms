@@ -31,12 +31,98 @@ import {
     FileSpreadsheet
 } from 'lucide-react';
 
+const DEFAULT_RAW_MATERIALS = [
+    { id: 1, name: 'Pure Cotton Fabric', currentStock: 250.0, unitOfMeasure: 'Meters', unitCost: 120.0, reorderLevel: 50.0, warehouseLocation: 'Dual Warehouse #1 (Textile Bay A)' },
+    { id: 2, name: 'Wooden Handicraft Buttons', currentStock: 360.0, unitOfMeasure: 'Pieces', unitCost: 5.0, reorderLevel: 100.0, warehouseLocation: 'Dual Warehouse #1 (Textile Bay B)' },
+    { id: 3, name: 'Handloom Silk Yarn', currentStock: 41.0, unitOfMeasure: 'Kg', unitCost: 850.0, reorderLevel: 15.0, warehouseLocation: 'Dual Warehouse #1 (Silk Rack 2)' },
+    { id: 4, name: 'Organic Herbal Dyes', currentStock: 53.5, unitOfMeasure: 'Litres', unitCost: 320.0, reorderLevel: 20.0, warehouseLocation: 'Dual Warehouse #2 (Chemical Safe)' },
+    { id: 5, name: 'Seasoned Bamboo Stalks', currentStock: 75.0, unitOfMeasure: 'Stalks', unitCost: 90.0, reorderLevel: 25.0, warehouseLocation: 'Dual Warehouse #2 (Yard C)' },
+    { id: 6, name: 'Natural Lacquer & Varnish', currentStock: 21.25, unitOfMeasure: 'Litres', unitCost: 240.0, reorderLevel: 10.0, warehouseLocation: 'Dual Warehouse #2 (Finishing Store)' },
+    { id: 7, name: 'Brass Metal Scrap', currentStock: 40.0, unitOfMeasure: 'Kg', unitCost: 180.0, reorderLevel: 15.0, warehouseLocation: 'Dual Warehouse #1 (Metal Foundry)' },
+    { id: 8, name: 'Natural Beeswax & Mold Binder', currentStock: 25.0, unitOfMeasure: 'Kg', unitCost: 220.0, reorderLevel: 10.0, warehouseLocation: 'Dual Warehouse #1 (Craft Depo)' },
+    { id: 9, name: 'Natural Terracotta Clay', currentStock: 150.0, unitOfMeasure: 'Kg', unitCost: 25.0, reorderLevel: 50.0, warehouseLocation: 'Dual Warehouse #2 (Ceramics Shed)' },
+    { id: 10, name: 'Saura Natural Pigments & Glaze', currentStock: 20.0, unitOfMeasure: 'Litres', unitCost: 280.0, reorderLevel: 8.0, warehouseLocation: 'Dual Warehouse #2 (Glazing Room)' }
+];
+
+const DEFAULT_FINISHED_GOODS = [
+    {
+        id: 1,
+        availableStock: 50,
+        reservedStock: 0,
+        reorderLevel: 10,
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0, description: 'NSQF Level-4 artisan hand-stitched garment' }
+    },
+    {
+        id: 2,
+        availableStock: 35,
+        reservedStock: 0,
+        reorderLevel: 8,
+        product: { id: 2, name: 'Sambalpuri Handloom Stole', sku: 'PRD-SAM-02', sellingPrice: 1200.0, incentiveRatePerUnit: 250.0, description: 'Traditional Sambalpuri ikat silk stole' }
+    },
+    {
+        id: 3,
+        availableStock: 30,
+        reservedStock: 0,
+        reorderLevel: 5,
+        product: { id: 3, name: 'Tribal Bamboo Table Lamp', sku: 'PRD-BAM-03', sellingPrice: 850.0, incentiveRatePerUnit: 150.0, description: 'Hand-woven curved bamboo ambient lamp' }
+    },
+    {
+        id: 4,
+        availableStock: 25,
+        reservedStock: 0,
+        reorderLevel: 5,
+        product: { id: 4, name: 'Dokra Tribal Bell Figurine', sku: 'PRD-DKR-04', sellingPrice: 1450.0, incentiveRatePerUnit: 300.0, description: 'Lost-wax cast bell metal folk art figurine' }
+    },
+    {
+        id: 5,
+        availableStock: 40,
+        reservedStock: 0,
+        reorderLevel: 10,
+        product: { id: 5, name: 'Saura Ceramic Vase', sku: 'PRD-POT-05', sellingPrice: 550.0, incentiveRatePerUnit: 90.0, description: 'Hand-painted terracotta pottery with Saura tribal motifs' }
+    }
+];
+
+const DEFAULT_WAREHOUSE_WORKSHOPS = [
+    { id: 1, name: 'Workshop Lab #1 (Sewing & Textiles)', shortName: 'Apparel & Sewing Studio', category: 'Garment Manufacturing', sku: 'PRD-KURTI-01', productName: 'Handcrafted Cotton Kurti', sellingPrice: 650.0, incentiveRate: 120.0, bomSummary: '2.5m Cotton + 4 Wooden Buttons' },
+    { id: 2, name: 'Workshop Lab #2 (Sambalpuri Handloom)', shortName: 'Tribal Handloom Studio', category: 'Heritage Weaving', sku: 'PRD-SAM-02', productName: 'Sambalpuri Handloom Stole', sellingPrice: 1200.0, incentiveRate: 250.0, bomSummary: '0.8kg Silk Yarn + 0.5L Natural Dyes' },
+    { id: 3, name: 'Workshop Lab #3 (Bamboo Craft Studio)', shortName: 'Bamboo & Woodcraft Studio', category: 'Eco-Artisan Crafts', sku: 'PRD-BAM-03', productName: 'Tribal Bamboo Table Lamp', sellingPrice: 850.0, incentiveRate: 150.0, bomSummary: '3.0 Stalks Bamboo + 0.25L Varnish' },
+    { id: 4, name: 'Workshop Lab #4 (Dokra Foundry Studio)', shortName: 'Dokra Bell Metal Casting Lab', category: 'Lost-Wax Metallurgy', sku: 'PRD-DKR-04', productName: 'Dokra Tribal Bell Figurine', sellingPrice: 1450.0, incentiveRate: 300.0, bomSummary: '0.5kg Metal Scrap + 0.2kg Beeswax' },
+    { id: 5, name: 'Workshop Lab #5 (Saura Pottery Studio)', shortName: 'Terracotta & Pottery Studio', category: 'Ceramics & Painting', sku: 'PRD-POT-05', productName: 'Saura Ceramic Vase', sellingPrice: 550.0, incentiveRate: 90.0, bomSummary: '2.0kg Terracotta Clay + 0.1L Saura Glaze' }
+];
+
 export default function DualWarehouse({ onNavigateTab }) {
-    const [rawMaterials, setRawMaterials] = useState([]);
-    const [finishedGoods, setFinishedGoods] = useState([]);
+    const [rawMaterials, setRawMaterials] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_raw_materials_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_RAW_MATERIALS;
+    });
+    const [finishedGoods, setFinishedGoods] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_finished_goods_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_FINISHED_GOODS;
+    });
     const [productionRuns, setProductionRuns] = useState([]);
-    const [workshops, setWorkshops] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [workshops, setWorkshops] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_workshops_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_WAREHOUSE_WORKSHOPS;
+    });
+    const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString());
 
@@ -80,20 +166,23 @@ export default function DualWarehouse({ onNavigateTab }) {
                 axios.get('http://localhost:8080/api/v1/production/workshops')
             ]);
 
-            if (Array.isArray(rawRes.data)) {
+            if (Array.isArray(rawRes.data) && rawRes.data.length > 0) {
                 setRawMaterials(rawRes.data);
+                localStorage.setItem('kvtms_raw_materials_cache', JSON.stringify(rawRes.data));
             }
 
-            if (Array.isArray(finishedRes.data)) {
+            if (Array.isArray(finishedRes.data) && finishedRes.data.length > 0) {
                 setFinishedGoods(finishedRes.data);
+                localStorage.setItem('kvtms_finished_goods_cache', JSON.stringify(finishedRes.data));
             }
 
             if (Array.isArray(runsRes.data)) {
                 setProductionRuns(runsRes.data);
             }
 
-            if (Array.isArray(workshopsRes.data)) {
+            if (Array.isArray(workshopsRes.data) && workshopsRes.data.length > 0) {
                 setWorkshops(workshopsRes.data);
+                localStorage.setItem('kvtms_workshops_cache', JSON.stringify(workshopsRes.data));
             }
 
             setLastUpdated(new Date().toLocaleTimeString());

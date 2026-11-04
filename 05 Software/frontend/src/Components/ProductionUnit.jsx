@@ -124,6 +124,105 @@ const DEFAULT_PRODUCTION_BULLETINS = [
     }
 ];
 
+const DEFAULT_PRODUCTION_RUNS = [
+    {
+        id: 1,
+        batchNumber: 'BATCH-2026-SEW-001',
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0 },
+        targetQuantity: 15,
+        completedQuantity: 15,
+        status: 'APPROVED_FOR_SALE',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'Batch verified and cleared for commercial sales POS',
+        assignedScholars: ['Sita Marandi', 'Ramesh Soren', 'Rani Hembrum']
+    },
+    {
+        id: 2,
+        batchNumber: 'BATCH-2026-SAM-001',
+        product: { id: 2, name: 'Sambalpuri Handloom Stole', sku: 'PRD-SAM-02', sellingPrice: 1200.0, incentiveRatePerUnit: 250.0 },
+        targetQuantity: 10,
+        completedQuantity: 10,
+        status: 'APPROVED_FOR_SALE',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'NSQF Grade-A handloom weave cleared for showroom',
+        assignedScholars: ['Pooja Oram', 'Sagar Marandi']
+    },
+    {
+        id: 3,
+        batchNumber: 'BATCH-2026-SEW-002',
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0 },
+        targetQuantity: 25,
+        completedQuantity: 25,
+        status: 'APPROVED_FOR_SALE',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'Commercial institutional uniforms release',
+        assignedScholars: ['Sita Marandi', 'Ramesh Soren']
+    },
+    {
+        id: 4,
+        batchNumber: 'BATCH-2026-BAM-001',
+        product: { id: 3, name: 'Tribal Bamboo Table Lamp', sku: 'PRD-BAM-03', sellingPrice: 850.0, incentiveRatePerUnit: 150.0 },
+        targetQuantity: 10,
+        completedQuantity: 10,
+        status: 'APPROVED_FOR_SALE',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'Eco-artisan handicraft collection approved for POS',
+        assignedScholars: ['Sagar Marandi']
+    },
+    {
+        id: 8,
+        batchNumber: 'BATCH-2026-TEST-0305',
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0 },
+        targetQuantity: 10,
+        completedQuantity: 0,
+        status: 'IN_PROGRESS',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'Active cutting and pattern stitching on floor',
+        assignedScholars: ['Rani Hembrum']
+    },
+    {
+        id: 9,
+        batchNumber: 'BATCH-2026-TEST-0349',
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0 },
+        targetQuantity: 10,
+        completedQuantity: 10,
+        status: 'APPROVED_FOR_SALE',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'Verified & transferred to sales inventory',
+        assignedScholars: ['Pooja Oram']
+    },
+    {
+        id: 10,
+        batchNumber: 'BATCH-2026-TEST-1206',
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0 },
+        targetQuantity: 10,
+        completedQuantity: 10,
+        status: 'APPROVED_FOR_SALE',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'NSQF certification batch cleared',
+        assignedScholars: ['Sita Marandi']
+    },
+    {
+        id: 11,
+        batchNumber: 'BATCH-2026-SEW-004',
+        product: { id: 1, name: 'Handcrafted Cotton Kurti', sku: 'PRD-KURTI-01', sellingPrice: 650.0, incentiveRatePerUnit: 120.0 },
+        targetQuantity: 15,
+        completedQuantity: 15,
+        status: 'PENDING_APPROVAL',
+        supervisor: { id: 3, fullName: 'Production Supervisor', collegeId: 'KISS-PRD-001' },
+        remarks: 'Apprentice Team: Sita Marandi, Rani Hembrum, Sagar Marandi (Awaiting Admin sign-off)',
+        assignedScholars: ['Sita Marandi', 'Rani Hembrum', 'Sagar Marandi']
+    }
+];
+
+const DEFAULT_PRODUCTION_SUMMARY = {
+    totalBatches: 11,
+    inProgress: 2,
+    pendingApproval: 1,
+    approvedForSale: 8,
+    totalUnitsProduced: 120
+};
+
 export default function ProductionUnit({ currentUser, onNavigateTab }) {
     // Safely determine Role
     let resolvedUser = currentUser;
@@ -149,15 +248,33 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
 
     // Data states
     const [loading, setLoading] = useState(false);
-    const [summary, setSummary] = useState({
-        totalBatches: 0,
-        inProgress: 0,
-        pendingApproval: 0,
-        approvedForSale: 0,
-        totalUnitsProduced: 0
+    const [summary, setSummary] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_summary_cache');
+            if (cached) return JSON.parse(cached);
+        } catch (e) {}
+        return DEFAULT_PRODUCTION_SUMMARY;
     });
-    const [runs, setRuns] = useState([]);
-    const [pendingRuns, setPendingRuns] = useState([]);
+    const [runs, setRuns] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_runs_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_PRODUCTION_RUNS;
+    });
+    const [pendingRuns, setPendingRuns] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_pending_runs_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_PRODUCTION_RUNS.filter(r => r.status === 'PENDING_APPROVAL');
+    });
     const [products, setProducts] = useState([]);
     const [rawMaterials, setRawMaterials] = useState([]);
     const [notification, setNotification] = useState(null);
@@ -377,11 +494,12 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
             const summaryRes = await axios.get(`${API_BASE_URL}/production/reports/summary`);
             if (summaryRes.data) {
                 setSummary(summaryRes.data);
+                localStorage.setItem('kvtms_summary_cache', JSON.stringify(summaryRes.data));
             }
 
             // 2. All Runs (Enriched with assigned scholars from local registry)
             const runsRes = await axios.get(`${API_BASE_URL}/production/runs`);
-            if (runsRes.data && Array.isArray(runsRes.data)) {
+            if (runsRes.data && Array.isArray(runsRes.data) && runsRes.data.length > 0) {
                 try {
                     const savedBatchMap = JSON.parse(localStorage.getItem('kvtms_batch_scholars') || '{}');
                     const enriched = runsRes.data.map(r => {
@@ -392,8 +510,10 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
                         };
                     });
                     setRuns(enriched);
+                    localStorage.setItem('kvtms_runs_cache', JSON.stringify(enriched));
                 } catch (e) {
                     setRuns(runsRes.data);
+                    localStorage.setItem('kvtms_runs_cache', JSON.stringify(runsRes.data));
                 }
             }
 
@@ -440,8 +560,10 @@ export default function ProductionUnit({ currentUser, onNavigateTab }) {
                     };
                 });
                 setPendingRuns(enriched);
+                localStorage.setItem('kvtms_pending_runs_cache', JSON.stringify(enriched));
             } catch (e) {
                 setPendingRuns(pendingRunsList);
+                localStorage.setItem('kvtms_pending_runs_cache', JSON.stringify(pendingRunsList));
             }
 
             // 4. Products
