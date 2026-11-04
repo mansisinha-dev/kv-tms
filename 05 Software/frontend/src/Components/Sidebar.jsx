@@ -153,12 +153,6 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
                     icon: BookOpen
                 },
                 {
-                    id: 'qa-defects',
-                    label: 'QA, Defects & Lab Equipment',
-                    desc: 'Unit split, damage & machine logs',
-                    icon: Activity
-                },
-                {
                     id: 'production',
                     label: 'Batch & Stipend Approvals',
                     desc: 'Review runs & disburse DBT',

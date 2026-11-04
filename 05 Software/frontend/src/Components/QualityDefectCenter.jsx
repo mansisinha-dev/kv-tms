@@ -379,6 +379,28 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                 </div>
             )}
 
+            {/* Central Admin Governance Oversight Notice */}
+            {isAdmin && (
+                <div className="p-4 bg-emerald-50/90 border border-emerald-300 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#006837] text-white rounded-xl shadow-xs">
+                            <ShieldCheck size={18} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-emerald-950 text-xs">
+                                Central Administration Quality & Asset Audit Ledger (Read-Only)
+                            </h4>
+                            <p className="text-[11px] text-emerald-800 mt-0.5">
+                                Executive oversight view of unit quality yields, scrap write-offs, and machine health. Day-to-day inspections and returns are operated by Workshop Supervisors & Production Managers.
+                            </p>
+                        </div>
+                    </div>
+                    <span className="text-[10px] font-bold bg-[#006837] text-white px-3 py-1 rounded-full uppercase tracking-wider font-mono shrink-0">
+                        Admin Audit Mode
+                    </span>
+                </div>
+            )}
+
             {/* Navigation Pill Bar */}
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
                 <div className="flex flex-wrap items-center gap-2">
@@ -446,14 +468,16 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 Select any live production batch to inspect and split into Grade-A Passed, Reworkable, and Damaged/Scrap units.
                             </p>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowQaForm(!showQaForm)}
-                            className="bg-[#006837] hover:bg-[#004d28] text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
-                        >
-                            <PlusCircle size={14} />
-                            {showQaForm ? 'Close QA Form' : 'Record New Batch QA Inspection'}
-                        </button>
+                        {!isAdmin && (
+                            <button
+                                type="button"
+                                onClick={() => setShowQaForm(!showQaForm)}
+                                className="bg-[#006837] hover:bg-[#004d28] text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
+                            >
+                                <PlusCircle size={14} />
+                                {showQaForm ? 'Close QA Form' : 'Record New Batch QA Inspection'}
+                            </button>
+                        )}
                     </div>
 
                     {showQaForm && (
@@ -714,24 +738,26 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 Tracks damaged raw materials (WH-1), broken/spoiled finished crafts (WH-2), training material wastage, and POS customer defective product claims.
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <button
-                                type="button"
-                                onClick={() => setShowReturnForm(!showReturnForm)}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-                            >
-                                <RotateCcw size={13} />
-                                {showReturnForm ? 'Close Return Form' : 'Record POS Customer Return'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowDamageForm(!showDamageForm)}
-                                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-                            >
-                                <PlusCircle size={14} />
-                                {showDamageForm ? 'Close Form' : 'Log Damaged Stock / Scrap'}
-                            </button>
-                        </div>
+                        {!isAdmin && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReturnForm(!showReturnForm)}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                                >
+                                    <RotateCcw size={13} />
+                                    {showReturnForm ? 'Close Return Form' : 'Record POS Customer Return'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDamageForm(!showDamageForm)}
+                                    className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                                >
+                                    <PlusCircle size={14} />
+                                    {showDamageForm ? 'Close Form' : 'Log Damaged Stock / Scrap'}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {showDamageForm && (
@@ -1052,14 +1078,16 @@ export default function QualityDefectCenter({ currentUser, initialSubTab = 'qa-c
                                 Track operational status of sewing machines, handlooms, bamboo carving kits, and safety PPE across all KISS workshops.
                             </p>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowEquipForm(!showEquipForm)}
-                            className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
-                        >
-                            <PlusCircle size={14} />
-                            {showEquipForm ? 'Close Form' : 'Report Machine / Toolkit Breakdown'}
-                        </button>
+                        {!isAdmin && (
+                            <button
+                                type="button"
+                                onClick={() => setShowEquipForm(!showEquipForm)}
+                                className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
+                            >
+                                <PlusCircle size={14} />
+                                {showEquipForm ? 'Close Form' : 'Report Machine / Toolkit Breakdown'}
+                            </button>
+                        )}
                     </div>
 
                     {showEquipForm && (
