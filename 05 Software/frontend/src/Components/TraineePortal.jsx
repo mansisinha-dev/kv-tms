@@ -1181,6 +1181,60 @@ export default function TraineePortal({ currentUser, activeSection = 'trainee-pr
                                 </span>
                             </div>
 
+                            {/* NSDC & KISS Trust DBT Attendance Criteria Audit Card */}
+                            <div className="p-4 bg-gradient-to-r from-emerald-50/70 via-teal-50/50 to-slate-50 rounded-xl border border-emerald-200 text-xs space-y-3">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldCheck size={18} className="text-[#006837] shrink-0" />
+                                        <div>
+                                            <h4 className="font-bold text-slate-800">
+                                                NSDC & Ministry of Skill Development Attendance Criteria
+                                            </h4>
+                                            <p className="text-[11px] text-slate-500">
+                                                Government & KISS Trust guidelines require &ge;75% studio attendance for monthly base stipend clearance.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className={`px-2.5 py-1 rounded-lg font-bold text-xs shrink-0 ${
+                                        isStipendEligible 
+                                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
+                                            : 'bg-rose-100 text-rose-900 border border-rose-300'
+                                    }`}>
+                                        {isStipendEligible ? `✓ ${attendancePercentage}% Attendance — DBT Approved` : `⚠️ ${attendancePercentage}% Attendance — DBT Withheld`}
+                                    </span>
+                                </div>
+
+                                {/* Attendance Progress Bar */}
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-[11px] font-semibold text-slate-600">
+                                        <span>Current Attendance: <strong>{presentCount} of {totalSessions} sessions ({attendancePercentage}%)</strong></span>
+                                        <span className="text-[#006837]">Minimum Required: 75%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden relative">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-500 ${isStipendEligible ? 'bg-[#006837]' : 'bg-rose-500'}`}
+                                            style={{ width: `${Math.min(100, Math.max(5, attendancePercentage))}%` }}
+                                        />
+                                        <div className="absolute top-0 bottom-0 left-[75%] w-0.5 bg-slate-700 opacity-60" title="75% NSDC Threshold" />
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-center pt-1 text-[11px] text-slate-500">
+                                    <span>
+                                        {isStipendEligible 
+                                            ? 'Base skill allowance of ₹1,500.00 will be credited directly to your bank account via DBT.'
+                                            : 'Attendance below 75% places monthly base allowance on hold until practical sessions are completed.'}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTabChange('trainee-attendance')}
+                                        className="text-[#006837] hover:underline font-bold shrink-0 ml-2 cursor-pointer"
+                                    >
+                                        View Studio Attendance Logs &rarr;
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Disbursement History Table */}
                             <div>
                                 <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">

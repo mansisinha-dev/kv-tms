@@ -529,9 +529,20 @@ export default function DualWarehouse({ onNavigateTab }) {
                     <div className="text-2xl font-black text-amber-700 font-mono">
                         {lowStockRawCount}
                     </div>
-                    <p className="text-[11px] text-amber-800 mt-1">
-                        {lowStockRawCount > 0 ? 'Action needed: Inward supplies' : 'All raw stocks in safety range'}
-                    </p>
+                    <div className="flex justify-between items-center mt-1">
+                        <p className="text-[11px] text-amber-800">
+                            {lowStockRawCount > 0 ? 'Action needed: Inward supplies' : 'All raw stocks in safety range'}
+                        </p>
+                        {lowStockRawCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => handleOpenRestockModal()}
+                                className="text-[10px] font-bold text-[#006837] hover:underline cursor-pointer"
+                            >
+                                Restock &rarr;
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
@@ -1035,13 +1046,24 @@ export default function DualWarehouse({ onNavigateTab }) {
                                                     <p className="text-[11px] text-slate-500 mt-0.5">
                                                         Buffer Safety: {item.reorderLevel || 5} pcs
                                                     </p>
-                                                    <button
-                                                        onClick={() => handleOpenAdjustFinishedModal(item)}
-                                                        className="text-[10px] font-bold text-slate-600 hover:text-slate-900 underline mt-1 block"
-                                                        title="Adjust physical audit count"
-                                                    >
-                                                        Audit Count
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-1.5 mt-1">
+                                                        <button
+                                                            onClick={() => handleOpenAdjustFinishedModal(item)}
+                                                            className="text-[10px] font-bold text-slate-600 hover:text-slate-900 underline"
+                                                            title="Adjust physical audit count"
+                                                        >
+                                                            Audit Count
+                                                        </button>
+                                                        {item.availableStock <= (item.reorderLevel || 5) && onNavigateTab && (
+                                                            <button
+                                                                onClick={() => onNavigateTab('production')}
+                                                                className="text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded shadow-2xs cursor-pointer"
+                                                                title="Schedule workshop batch to restock this craft"
+                                                            >
+                                                                + Produce
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
 

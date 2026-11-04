@@ -22,7 +22,10 @@ import {
     Save,
     Clock,
     Trash2,
-    Mail
+    Mail,
+    QrCode,
+    FileText,
+    Building
 } from 'lucide-react';
 
 export default function SalesPOS({ onNavigateTab }) {
@@ -441,10 +444,20 @@ export default function SalesPOS({ onNavigateTab }) {
                     )}
 
                     {orderSuccess && (
-                        <div className="mb-4 p-3.5 bg-emerald-50 text-emerald-950 border border-emerald-300 rounded-xl text-xs space-y-1 shadow-xs">
-                            <div className="flex items-center gap-2 font-bold text-emerald-800 text-sm">
-                                <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
-                                <span>Order {orderSuccess.id} Confirmed!</span>
+                        <div className="mb-4 p-3.5 bg-emerald-50 text-emerald-950 border border-emerald-300 rounded-xl text-xs space-y-2 shadow-xs">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 font-bold text-emerald-800 text-sm">
+                                    <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
+                                    <span>Commercial Order {orderSuccess.id} Confirmed!</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewOrder(orderSuccess)}
+                                    className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-emerald-400 text-emerald-800 rounded-lg font-bold text-[11px] flex items-center gap-1 shadow-2xs transition cursor-pointer"
+                                    title="View printable official tax invoice"
+                                >
+                                    <Receipt size={13} className="text-[#006837]" /> View & Print Tax Invoice
+                                </button>
                             </div>
                             <p className="text-slate-700 pl-6">
                                 Product: <strong>{orderSuccess.item}</strong> | Customer: <strong>{orderSuccess.customer}</strong>
@@ -452,9 +465,14 @@ export default function SalesPOS({ onNavigateTab }) {
                             <p className="text-indigo-800 font-semibold pl-6">
                                 Scheduled Dispatch Date: <strong>{orderSuccess.dispatchDate}</strong>
                             </p>
-                            <p className="text-[#006837] font-bold pl-6 text-sm">
-                                Total Invoice Value: ₹{orderSuccess.total?.toFixed(2)}
-                            </p>
+                            <div className="pl-6 flex items-center justify-between pt-1 border-t border-emerald-200/60">
+                                <span className="text-[#006837] font-bold text-sm">
+                                    Total Invoice: ₹{orderSuccess.total?.toFixed(2)}
+                                </span>
+                                <span className="text-[10px] text-emerald-800 font-mono">
+                                    5% GST Included (CGST 2.5%: ₹{((orderSuccess.total / 1.05) * 0.025).toFixed(2)} | SGST 2.5%: ₹{((orderSuccess.total / 1.05) * 0.025).toFixed(2)})
+                                </span>
+                            </div>
                         </div>
                     )}
 
@@ -663,17 +681,33 @@ export default function SalesPOS({ onNavigateTab }) {
                             </div>
                         </div>
 
-                        {/* Total Price Calculation */}
-                        <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex justify-between items-center">
-                            <div>
-                                <span className="text-xs font-bold text-amber-900 block">Total Invoice Payable:</span>
-                                <span className="text-[11px] text-amber-700">
-                                    {activeQty} unit(s) @ ₹{unitPrice.toFixed(2)} each
+                        {/* Total Price & GST Calculation */}
+                        <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <span className="text-xs font-bold text-amber-900 block">Total Invoice Payable (Incl. 5% GST):</span>
+                                    <span className="text-[11px] text-amber-700">
+                                        {activeQty} unit(s) @ ₹{unitPrice.toFixed(2)} each
+                                    </span>
+                                </div>
+                                <span className="text-2xl font-black text-[#006837] font-mono">
+                                    ₹{(activeQty * unitPrice).toFixed(2)}
                                 </span>
                             </div>
-                            <span className="text-2xl font-black text-[#006837] font-mono">
-                                ₹{(activeQty * unitPrice).toFixed(2)}
-                            </span>
+                            <div className="pt-2 border-t border-amber-200/70 grid grid-cols-3 gap-2 text-[10px] text-amber-900 font-mono">
+                                <div>
+                                    <span className="text-amber-700 block font-sans">Taxable Base:</span>
+                                    <span>₹{((activeQty * unitPrice) / 1.05).toFixed(2)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-amber-700 block font-sans">CGST (2.5%):</span>
+                                    <span>₹{(((activeQty * unitPrice) / 1.05) * 0.025).toFixed(2)}</span>
+                                </div>
+                                <div>
+                                    <span className="text-amber-700 block font-sans">SGST (2.5%):</span>
+                                    <span>₹{(((activeQty * unitPrice) / 1.05) * 0.025).toFixed(2)}</span>
+                                </div>
+                            </div>
                         </div>
 
                         <button
@@ -823,148 +857,218 @@ export default function SalesPOS({ onNavigateTab }) {
 
             </div>
 
-            {/* VIEW ORDER DETAILS MODAL */}
-            {viewOrder && (
-                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs">
-                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-                        <div className="flex justify-between items-start border-b pb-3">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <Receipt size={20} className="text-[#006837]" />
-                                    <h3 className="font-bold text-slate-800 text-lg">Sales Invoice Details</h3>
+            {/* VIEW ORDER DETAILS MODAL (OFFICIAL GST TAX INVOICE) */}
+            {viewOrder && (() => {
+                const totalAmt = Number(viewOrder.total) || 0;
+                const taxableBase = totalAmt / 1.05;
+                const cgstAmt = taxableBase * 0.025;
+                const sgstAmt = taxableBase * 0.025;
+                const totalGst = totalAmt - taxableBase;
+
+                return (
+                    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs overflow-y-auto">
+                        <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-300 space-y-4 animate-in fade-in zoom-in-95 duration-150 my-6">
+                            
+                            {/* University & Vocational Center Header */}
+                            <div className="border-b-2 border-slate-800 pb-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#006837] text-white flex items-center justify-center font-black text-sm shadow-xs">
+                                            KISS
+                                        </div>
+                                        <div>
+                                            <h2 className="font-black text-slate-900 text-sm sm:text-base tracking-tight leading-snug">
+                                                KALINGA INSTITUTE OF SOCIAL SCIENCES (KISS)
+                                            </h2>
+                                            <p className="text-[11px] text-slate-600 font-medium">
+                                                Vocational Production & Commercial Sales Center (Campus-10, Bhubaneswar)
+                                            </p>
+                                            <p className="text-[10px] text-slate-500 font-mono">
+                                                GSTIN: <strong>21AAATK9876Q1Z2</strong> &bull; State Code: <strong>21 (Odisha)</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setViewOrder(null)}
+                                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                    >
+                                        <X size={18} />
+                                    </button>
                                 </div>
-                                <p className="text-xs text-slate-500 font-mono mt-0.5">Order Ref: {viewOrder.id}</p>
+                                <div className="mt-2.5 pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                                    <span className="font-bold text-[#006837] uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                                        <FileText size={13} /> Commercial Tax Invoice / Retail Bill
+                                    </span>
+                                    <span className="font-mono text-slate-500 text-[11px]">
+                                        Ref: <strong>{viewOrder.id}</strong>
+                                    </span>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => setViewOrder(null)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
 
-                        {/* Order & Dispatch Status Badge */}
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                            <div>
-                                <span className="text-slate-500 font-medium block">Dispatch Status</span>
-                                <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5 mt-0.5">
-                                    {viewOrder.status === 'DISPATCHED' ? (
-                                        <span className="text-emerald-700 flex items-center gap-1">
-                                            <CheckCircle2 size={14} className="text-emerald-600" /> Dispatched to Client
-                                        </span>
-                                    ) : (
-                                        <span className="text-amber-700 flex items-center gap-1">
-                                            <Clock size={14} className="text-amber-600" /> Awaiting Dispatch / Packaging
-                                        </span>
-                                    )}
-                                </span>
+                            {/* Order & Dispatch Status Badge */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                                <div>
+                                    <span className="text-slate-500 font-medium block text-[11px]">Dispatch & Handover Status</span>
+                                    <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5 mt-0.5">
+                                        {viewOrder.status === 'DISPATCHED' ? (
+                                            <span className="text-emerald-700 flex items-center gap-1">
+                                                <CheckCircle2 size={14} className="text-emerald-600" /> Dispatched / Delivered to Client
+                                            </span>
+                                        ) : (
+                                            <span className="text-amber-700 flex items-center gap-1">
+                                                <Clock size={14} className="text-amber-600" /> Awaiting Packaging & Showroom Handover
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-slate-500 font-medium block text-[11px]">Scheduled Handover</span>
+                                    <span className="font-bold text-indigo-700 font-mono text-xs">
+                                        {viewOrder.dispatchDate || 'Immediate'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <span className="text-slate-500 font-medium block">Scheduled Dispatch</span>
-                                <span className="font-bold text-indigo-700 font-mono text-xs">
-                                    {viewOrder.dispatchDate || 'Immediate'}
-                                </span>
-                            </div>
-                        </div>
 
-                        {/* Customer Information Card */}
-                        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                            <p className="font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                                <User size={12} className="text-slate-400" /> Customer Information
-                            </p>
-                            <p className="font-bold text-slate-900 text-sm">{viewOrder.customer}</p>
-                            <div className="grid grid-cols-2 gap-2 text-slate-600 pt-1">
-                                <p className="flex items-center gap-1">
-                                    <Phone size={11} className="text-slate-400" /> {viewOrder.customerContact || 'N/A'}
+                            {/* Customer Information Card */}
+                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+                                <p className="font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                                    <User size={12} className="text-slate-400" /> Billed To (Buyer / Organization)
                                 </p>
-                                <p className="flex items-center gap-1">
-                                    <Mail size={11} className="text-slate-400" /> {viewOrder.customerEmail || 'N/A'}
+                                <p className="font-bold text-slate-900 text-sm">{viewOrder.customer}</p>
+                                <div className="grid grid-cols-2 gap-2 text-slate-600 pt-0.5">
+                                    <p className="flex items-center gap-1">
+                                        <Phone size={11} className="text-slate-400" /> {viewOrder.customerContact || 'N/A'}
+                                    </p>
+                                    <p className="flex items-center gap-1">
+                                        <Mail size={11} className="text-slate-400" /> {viewOrder.customerEmail || 'pos@kiss.ac.in'}
+                                    </p>
+                                </div>
+                                <p className="flex items-center gap-1 text-slate-600">
+                                    <MapPin size={11} className="text-slate-400" /> {viewOrder.customerAddress || 'Campus Pavilion, Bhubaneswar'}
                                 </p>
                             </div>
-                            <p className="flex items-center gap-1 text-slate-600">
-                                <MapPin size={11} className="text-slate-400" /> {viewOrder.customerAddress || 'Campus Pavilion'}
-                            </p>
-                        </div>
 
-                        {/* Order Item List Table */}
-                        <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-100 text-slate-600 border-b">
-                                    <tr>
-                                        <th className="py-2 px-3">Product Description</th>
-                                        <th className="py-2 px-2 text-center">Qty</th>
-                                        <th className="py-2 px-2 text-right">Unit Price</th>
-                                        <th className="py-2 px-3 text-right">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {viewOrder.itemsList && viewOrder.itemsList.length > 0 ? (
-                                        viewOrder.itemsList.map((it, i) => (
-                                            <tr key={i} className="border-b last:border-b-0 hover:bg-slate-50">
-                                                <td className="py-2 px-3">
-                                                    <span className="font-bold text-slate-800">{it.product?.name || 'Craft Product'}</span>
-                                                    <span className="block text-[10px] text-slate-400 font-mono">{it.product?.sku}</span>
-                                                </td>
-                                                <td className="py-2 px-2 text-center font-bold">{it.quantity}</td>
-                                                <td className="py-2 px-2 text-right font-mono">₹{it.unitPrice?.toFixed(2)}</td>
-                                                <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">₹{it.subtotal?.toFixed(2)}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
+                            {/* Order Item List Table */}
+                            <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-100 text-slate-700 border-b">
                                         <tr>
-                                            <td className="py-2 px-3 font-semibold">{viewOrder.item}</td>
-                                            <td className="py-2 px-2 text-center font-bold">{viewOrder.qty}</td>
-                                            <td className="py-2 px-2 text-right font-mono">₹{viewOrder.unitPrice?.toFixed(2)}</td>
-                                            <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">₹{viewOrder.total?.toFixed(2)}</td>
+                                            <th className="py-2 px-3">Item Description & Trade</th>
+                                            <th className="py-2 px-2 text-center">Qty</th>
+                                            <th className="py-2 px-2 text-right">Unit Rate</th>
+                                            <th className="py-2 px-3 text-right">Amount (₹)</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Invoice Summary */}
-                        <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex justify-between items-center text-xs">
-                            <div>
-                                <span className="font-bold text-emerald-950 block">Grand Total Invoiced</span>
-                                <span className="text-[11px] text-emerald-800">Booked at {viewOrder.orderDateTime}</span>
+                                    </thead>
+                                    <tbody>
+                                        {viewOrder.itemsList && viewOrder.itemsList.length > 0 ? (
+                                            viewOrder.itemsList.map((it, i) => (
+                                                <tr key={i} className="border-b last:border-b-0 hover:bg-slate-50">
+                                                    <td className="py-2 px-3">
+                                                        <span className="font-bold text-slate-800">{it.product?.name || 'Craft Product'}</span>
+                                                        <span className="block text-[10px] text-slate-400 font-mono">
+                                                            {it.product?.sku || 'VOC-PRD'} &bull; HSN: 6204/9701
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-center font-bold">{it.quantity}</td>
+                                                    <td className="py-2 px-2 text-right font-mono">₹{it.unitPrice?.toFixed(2)}</td>
+                                                    <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">₹{it.subtotal?.toFixed(2)}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td className="py-2 px-3">
+                                                    <span className="font-semibold text-slate-800">{viewOrder.item}</span>
+                                                    <span className="block text-[10px] text-slate-400 font-mono">
+                                                        Vocational Production Division &bull; HSN: 6204/9701
+                                                    </span>
+                                                </td>
+                                                <td className="py-2 px-2 text-center font-bold">{viewOrder.qty}</td>
+                                                <td className="py-2 px-2 text-right font-mono">₹{viewOrder.unitPrice?.toFixed(2)}</td>
+                                                <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">₹{viewOrder.total?.toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
-                            <span className="text-xl font-black text-[#006837] font-mono">
-                                ₹{viewOrder.total?.toFixed(2)}
-                            </span>
-                        </div>
 
-                        {/* Footer Actions */}
-                        <div className="flex items-center justify-between gap-2 pt-2">
-                            {!viewOrder.isDispatched ? (
-                                <button
-                                    type="button"
-                                    onClick={() => handleCancelOrder(viewOrder)}
-                                    className="px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Trash2 size={14} className="text-rose-600" /> Cancel Order
-                                </button>
-                            ) : <div />}
+                            {/* Official Indian GST Breakdown & Summary */}
+                            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                                <div className="flex justify-between items-center text-slate-600">
+                                    <span>Taxable Value (Before GST):</span>
+                                    <span className="font-mono font-semibold">₹{taxableBase.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-slate-600">
+                                    <span>Central GST (CGST @ 2.5%):</span>
+                                    <span className="font-mono">₹{cgstAmt.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-slate-600">
+                                    <span>State GST (SGST @ 2.5%):</span>
+                                    <span className="font-mono">₹{sgstAmt.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-slate-600 pb-1 border-b border-slate-200">
+                                    <span className="font-medium">Total Tax (5% GST):</span>
+                                    <span className="font-mono font-bold text-slate-800">₹{totalGst.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-1 text-slate-900">
+                                    <div>
+                                        <span className="font-black text-sm block">Net Amount Invoiced:</span>
+                                        <span className="text-[10px] text-slate-500">Booked on {viewOrder.orderDateTime || viewOrder.date}</span>
+                                    </div>
+                                    <span className="text-xl font-black text-[#006837] font-mono">
+                                        ₹{totalAmt.toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
 
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => window.print()}
-                                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Printer size={14} /> Print Receipt
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setViewOrder(null)}
-                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg text-xs transition-colors"
-                                >
-                                    Close
-                                </button>
+                            {/* Simulated Barcode & Verification Footer */}
+                            <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+                                <div className="space-y-1">
+                                    <div className="font-mono tracking-widest text-[11px] text-slate-700 bg-slate-100 px-3 py-1 rounded border border-slate-200 font-bold select-all inline-block">
+                                        ||| | |||| | ||| || ||||| | ||| {viewOrder.id}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400">
+                                        100% of proceeds support tribal apprentice stipends under Earn-While-You-Learn.
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[10px] font-bold text-slate-500 block uppercase">Authorized Signatory</span>
+                                    <span className="text-[11px] font-bold text-[#006837]">KISS Production Cell</span>
+                                </div>
+                            </div>
+
+                            {/* Footer Actions */}
+                            <div className="flex items-center justify-between gap-2 pt-2">
+                                {!viewOrder.isDispatched ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCancelOrder(viewOrder)}
+                                        className="px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    >
+                                        <Trash2 size={14} className="text-rose-600" /> Cancel Order
+                                    </button>
+                                ) : <div />}
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => window.print()}
+                                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    >
+                                        <Printer size={14} /> Print Tax Invoice
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewOrder(null)}
+                                        className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {/* EDIT ORDER MODAL (Active only till not dispatched) */}
             {editOrder && (
