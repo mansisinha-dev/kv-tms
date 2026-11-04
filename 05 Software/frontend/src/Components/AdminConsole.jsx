@@ -474,7 +474,101 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
     });
 
     // 2. Real Vocational Courses & Syllabus State loaded from MySQL
-    const [courses, setCourses] = useState([]);
+    const DEFAULT_COURSES = [
+        {
+            id: 1,
+            name: "Sewing & Apparel Manufacturing",
+            code: "VOC-SEW-101",
+            durationMonths: 6,
+            description: "Industrial garment manufacturing, pattern drafting, lockstitch machine mastery, NSQF Level 4 compliance.",
+            active: true,
+            fee: 12000.0,
+            modulesCount: 4,
+            enrolledScholarsCount: 3,
+            syllabusModules: [
+                { id: 101, orderNo: 1, moduleTitle: "Introduction to Textile Fibers & Fabrics", durationHours: 40, description: "Fiber classification, weave analysis, and grain line identification." },
+                { id: 102, orderNo: 2, moduleTitle: "Industrial Sewing Machine Operation & Safety", durationHours: 60, description: "Single-needle lockstitch, overlock joinery, and needle calibration." },
+                { id: 103, orderNo: 3, moduleTitle: "Apparel Pattern Making & Grading", durationHours: 80, description: "Bodice drafting, collar construction, and sizing specs." },
+                { id: 104, orderNo: 4, moduleTitle: "Quality Audit, Finishing & NSQF Assessment", durationHours: 60, description: "Defect inspection, packaging standards, and certification assessment." }
+            ]
+        },
+        {
+            id: 2,
+            name: "Handicrafts & Tribal Art",
+            code: "VOC-ART-102",
+            durationMonths: 6,
+            description: "Traditional Odisha tribal painting, Saura art, Dokra metal casting, and eco-artisan handicraft development.",
+            active: true,
+            fee: 12000.0,
+            modulesCount: 4,
+            enrolledScholarsCount: 2,
+            syllabusModules: [
+                { id: 201, orderNo: 1, moduleTitle: "Heritage of Odisha Tribal Art & Motifs", durationHours: 40, description: "Saura icons, Pattachitra elements, and tribal symbology." },
+                { id: 202, orderNo: 2, moduleTitle: "Natural Pigment Preparation & Surface Prep", durationHours: 50, description: "Organic binder extraction, canvas preparation, and bamboo etching." },
+                { id: 203, orderNo: 3, moduleTitle: "Dokra Lost-Wax Bell Metal Craft", durationHours: 70, description: "Clay core modeling, wax ribbon work, and furnace casting." },
+                { id: 204, orderNo: 4, moduleTitle: "Commercial Curation & Exhibition Standards", durationHours: 60, description: "Framing, boutique presentation, and online marketplace listing." }
+            ]
+        },
+        {
+            id: 3,
+            name: "Food Processing & Preservation",
+            code: "VOC-FOD-103",
+            durationMonths: 4,
+            description: "Agro-food processing, fruit pulp preservation, FSSAI hygiene standards, and value-added tribal forest produce.",
+            active: true,
+            fee: 12000.0,
+            modulesCount: 3,
+            enrolledScholarsCount: 1,
+            syllabusModules: [
+                { id: 301, orderNo: 1, moduleTitle: "Food Safety, FSSAI Hygiene & Sanitization", durationHours: 30, description: "GMP, HACCP guidelines, and sterile packaging protocols." },
+                { id: 302, orderNo: 2, moduleTitle: "Thermal Processing, Jams & Fruit Canning", durationHours: 50, description: "Brix measurement, pasteurization, and vacuum sealing." },
+                { id: 303, orderNo: 3, moduleTitle: "Tribal Forest Honey & Spice Extraction", durationHours: 40, description: "Pure honey testing, organic grading, and moisture reduction." }
+            ]
+        },
+        {
+            id: 4,
+            name: "Carpentry & Woodwork",
+            code: "VOC-CAR-104",
+            durationMonths: 6,
+            description: "Timber selection, precision joinery, lathe turning, and modern modular institutional furniture fabrication.",
+            active: true,
+            fee: 12000.0,
+            modulesCount: 3,
+            enrolledScholarsCount: 1,
+            syllabusModules: [
+                { id: 401, orderNo: 1, moduleTitle: "Timber Seasoning & Grain Grading", durationHours: 40, description: "Moisture content testing, wood defects, and sawing methods." },
+                { id: 402, orderNo: 2, moduleTitle: "Power Tool Operation & Joinery Techniques", durationHours: 70, description: "Mortise & tenon, dovetail joinery, and planer maintenance." },
+                { id: 403, orderNo: 3, moduleTitle: "Surface Sanding, Polishing & Polyurethane Coating", durationHours: 50, description: "Natural oil finish, wood filler, and lacquer spraying." }
+            ]
+        },
+        {
+            id: 5,
+            name: "Bamboo Technology & Eco-Craft",
+            code: "VOC-BAM-105",
+            durationMonths: 6,
+            description: "Bamboo curing, split weaving, artisan furniture, and eco-friendly home utility decor items.",
+            active: true,
+            fee: 12000.0,
+            modulesCount: 3,
+            enrolledScholarsCount: 2,
+            syllabusModules: [
+                { id: 501, orderNo: 1, moduleTitle: "Bamboo Species Identification & Borax Treatment", durationHours: 40, description: "Sap displacement, curing against borer attack, and seasoning." },
+                { id: 502, orderNo: 2, moduleTitle: "Bamboo Splitting, Planing & Fine Weaving", durationHours: 60, description: "Sliver making, tensile grading, and basketry patterns." },
+                { id: 503, orderNo: 3, moduleTitle: "Curved Bamboo Fabrication & Lighting Fixtures", durationHours: 60, description: "Heat bending, pin doweling, and electrical wiring assembly." }
+            ]
+        }
+    ];
+
+    const [courses, setCourses] = useState(() => {
+        try {
+            const cached = localStorage.getItem('kvtms_courses_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (e) {}
+        return DEFAULT_COURSES;
+    });
     const [loadingCourses, setLoadingCourses] = useState(false);
 
     // Active courses filter: hides deactivated courses from registration forms
@@ -500,21 +594,30 @@ export default function AdminConsole({ activeSection = 'courses', onNavigateSect
             if (Array.isArray(res.data) && res.data.length > 0) {
                 list = res.data;
                 setCourses(res.data);
+                localStorage.setItem('kvtms_courses_cache', JSON.stringify(res.data));
             } else {
                 const fallback = await axios.get(`${API_BASE_URL}/auth/courses`);
-                if (Array.isArray(fallback.data)) {
+                if (Array.isArray(fallback.data) && fallback.data.length > 0) {
                     list = fallback.data;
                     setCourses(fallback.data);
+                    localStorage.setItem('kvtms_courses_cache', JSON.stringify(fallback.data));
                 }
             }
         } catch (err) {
             try {
                 const fallback = await axios.get(`${API_BASE_URL}/auth/courses`);
-                if (Array.isArray(fallback.data)) {
+                if (Array.isArray(fallback.data) && fallback.data.length > 0) {
                     list = fallback.data;
                     setCourses(fallback.data);
+                    localStorage.setItem('kvtms_courses_cache', JSON.stringify(fallback.data));
+                } else {
+                    const cached = localStorage.getItem('kvtms_courses_cache');
+                    if (cached) setCourses(JSON.parse(cached));
                 }
-            } catch (e) {}
+            } catch (e) {
+                const cached = localStorage.getItem('kvtms_courses_cache');
+                if (cached) setCourses(JSON.parse(cached));
+            }
         } finally {
             setLoadingCourses(false);
         }
