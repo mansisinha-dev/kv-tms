@@ -88,6 +88,67 @@ const PORTAL_ROLES = [
     }
 ];
 
+export const DEFAULT_DEMO_ACCOUNTS = [
+    {
+        username: 'KISS-ADM-001',
+        collegeId: 'KISS-ADM-001',
+        name: 'Dr. Debashis Mohanty',
+        fullName: 'Dr. Debashis Mohanty',
+        password: 'KISS-ADM-001@123',
+        role: 'ROLE_ADMIN',
+        email: 'debashis.mohanty@kiss.ac.in',
+        contactNumber: '+91 94370 12345',
+        trade: 'Central University Governance'
+    },
+    {
+        username: 'KISS-PRD-001',
+        collegeId: 'KISS-PRD-001',
+        name: 'Kavita Priyadarshini Das',
+        fullName: 'Kavita Priyadarshini Das',
+        password: 'KISS-PRD-001@123',
+        role: 'ROLE_PRODUCTION_MANAGER',
+        email: 'kavita.das@kiss.ac.in',
+        contactNumber: '+91 94371 88765',
+        trade: 'Commercial Artisan Production Unit'
+    },
+    {
+        username: 'KISS-FAC-001',
+        collegeId: 'KISS-FAC-001',
+        name: 'Prof. Sanatan Marndi',
+        fullName: 'Prof. Sanatan Marndi',
+        password: 'KISS-FAC-001@123',
+        role: 'ROLE_TRAINER',
+        email: 'sanatan.marndi@kiss.ac.in',
+        contactNumber: '+91 94371 55667',
+        trade: 'VOC-ART-102 (Handicrafts & Tribal Art)'
+    },
+    {
+        username: 'KISS-FAC-002',
+        collegeId: 'KISS-FAC-002',
+        name: 'Sasmita Sahoo',
+        fullName: 'Sasmita Sahoo',
+        password: 'KISS-FAC-002@123',
+        role: 'ROLE_TRAINER',
+        email: 'sasmita.sahoo@kiss.ac.in',
+        contactNumber: '+91 94371 66778',
+        trade: 'VOC-SEW-101 (Sewing & Apparel Manufacturing)'
+    },
+    {
+        username: 'KISS-TRN-2026-001',
+        collegeId: 'KISS-TRN-2026-001',
+        name: 'Laxman Majhi',
+        fullName: 'Laxman Majhi',
+        password: 'KISS-TRN-2026-001@123',
+        role: 'ROLE_TRAINEE',
+        email: 'laxman.majhi@kiss.ac.in',
+        contactNumber: '+91 98610 23456',
+        trade: 'VOC-SEW-101 (Sewing & Apparel Manufacturing)',
+        courseCode: 'VOC-SEW-101',
+        courseName: 'Sewing & Apparel Manufacturing',
+        category: 'Scheduled Tribe (KISS Scholar)'
+    }
+];
+
 export default function LoginPage({ onLoginSuccess, onBackToHome }) {
     const [selectedRoleId, setSelectedRoleId] = useState('ADMIN');
     const [username, setUsername] = useState('KISS-ADM-001');
@@ -113,6 +174,28 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
         setError('');
     };
 
+    // Instant offline/demo bypass login
+    const handleEnterOfflineMode = (forcedUser = null) => {
+        const target = forcedUser || DEFAULT_DEMO_ACCOUNTS.find(u => u.username === activeRole.defaultId) || {
+            username: activeRole.defaultId,
+            collegeId: activeRole.defaultId,
+            name: activeRole.title,
+            fullName: activeRole.title,
+            role: activeRole.roleKey,
+            email: `${activeRole.defaultId.toLowerCase()}@kiss.ac.in`,
+            contactNumber: '+91 94370 00000',
+            trade: activeRole.description
+        };
+
+        const token = `offline-jwt-${target.username}-${Date.now()}`;
+        localStorage.setItem('kvtms_token', token);
+        onLoginSuccess({
+            ...target,
+            token,
+            isOfflineMode: true
+        });
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
@@ -127,12 +210,12 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
             return;
         }
 
-        // 1. Try real Spring Boot JWT login API
+        // 1. Try real Spring Boot JWT login API (with timeout)
         try {
             const res = await axios.post(`${API_BASE_URL}/auth/login`, {
                 username: trimmedUser,
                 password: trimmedPass
-            });
+            }, { timeout: 3500 });
 
             if (res.data && res.data.token) {
                 localStorage.setItem('kvtms_token', res.data.token);
@@ -147,6 +230,7 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
                     username: res.data.collegeId || res.data.username || trimmedUser,
                     collegeId: res.data.collegeId || res.data.username || trimmedUser,
                     fullName: res.data.fullName || trimmedUser,
+                    name: res.data.fullName || trimmedUser,
                     role: assignedRole,
                     email: res.data.email,
                     contactNumber: res.data.contactNumber,
@@ -161,43 +245,48 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
             }
         } catch (err) {
             console.warn("Backend API response error:", err);
-            if (err.response) {
+
+            // If backend specifically returned a 401 / bad credentials on an active server
+            if (err.response && err.response.status === 401) {
                 setError(err.response?.data?.message || 'Invalid Credentials! Please verify your University ID and password.');
                 setLoading(false);
                 return;
             }
 
-            // Fallback: check previously cached local registry if backend network is unreachable
-            const savedRegistry = localStorage.getItem('kvtms_user_registry');
+            // 2. Resilient Offline Fallback (when backend is restarting or unreachable)
+            // Check default demo accounts first
+            const demoMatch = DEFAULT_DEMO_ACCOUNTS.find(
+                u => (u.username.toLowerCase() === trimmedUser.toLowerCase() || u.collegeId.toLowerCase() === trimmedUser.toLowerCase()) &&
+                     (!trimmedPass || trimmedPass === u.password || trimmedPass.includes(u.username))
+            );
+
+            // Check cached local registry
             let localUsers = [];
+            try {
+                const saved = localStorage.getItem('kvtms_user_registry');
+                if (saved) localUsers = JSON.parse(saved);
+            } catch (e) {}
 
-            if (savedRegistry) {
-                try {
-                    localUsers = JSON.parse(savedRegistry);
-                } catch (e) {}
-            }
-
-            const matched = localUsers.find(
-                u => (u.username || '').toLowerCase() === trimmedUser.toLowerCase() &&
+            const registryMatch = localUsers.find(
+                u => ((u.username || '').toLowerCase() === trimmedUser.toLowerCase() || (u.collegeId || '').toLowerCase() === trimmedUser.toLowerCase()) &&
                     (!u.password || u.password === trimmedPass)
             );
 
+            const matched = demoMatch || registryMatch;
+
             if (matched) {
-                onLoginSuccess({
-                    username: matched.username,
-                    collegeId: matched.username,
-                    fullName: matched.name || matched.fullName || matched.username,
-                    role: matched.role || (matched.username.includes('ADM') ? 'ROLE_ADMIN' : matched.username.includes('PRD') ? 'ROLE_PRODUCTION_MANAGER' : matched.username.includes('FAC') ? 'ROLE_TRAINER' : 'ROLE_TRAINEE'),
-                    email: matched.email || '',
-                    contactNumber: matched.contactNumber || '',
-                    trade: matched.trade || '',
-                    category: matched.category || '',
-                    token: `auth-${matched.username}-${Date.now()}`
-                });
+                handleEnterOfflineMode(matched);
                 return;
             }
 
-            setError('Unable to reach server. Please ensure the backend is running or check your credentials.');
+            // Check if user clicked login with active portal default credentials
+            const roleMatch = PORTAL_ROLES.find(r => r.defaultId.toLowerCase() === trimmedUser.toLowerCase());
+            if (roleMatch) {
+                handleEnterOfflineMode();
+                return;
+            }
+
+            setError('Unable to reach server. Click the button below to continue in Offline Demo Mode.');
         } finally {
             setLoading(false);
         }
@@ -348,11 +437,21 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
                         </button>
                     </div>
 
-                    {/* Error Banner */}
+                    {/* Error / Offline Mode Alert Banner */}
                     {error && (
-                        <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2 animate-shake">
-                            <AlertCircle size={16} className="text-rose-600 shrink-0" />
-                            <span>{error}</span>
+                        <div className="mb-4 p-3.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs space-y-2.5 animate-fade-in shadow-xs">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                                <span className="font-semibold">{error}</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleEnterOfflineMode()}
+                                className="w-full bg-[#006837] hover:bg-[#004d28] text-white py-2 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer"
+                            >
+                                <Sparkles size={14} className="text-[#fcb900]" />
+                                <span>Enter as {activeRole.title} (Instant Offline Mode) &rarr;</span>
+                            </button>
                         </div>
                     )}
 
@@ -419,6 +518,18 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
                                 </>
                             )}
                         </button>
+
+                        {/* Quick Demo Bypass Access Link */}
+                        <div className="pt-1 text-center">
+                            <button
+                                type="button"
+                                onClick={() => handleEnterOfflineMode()}
+                                className="text-[11px] font-semibold text-slate-500 hover:text-emerald-700 hover:underline inline-flex items-center gap-1 transition cursor-pointer"
+                            >
+                                <Sparkles size={12} className="text-[#fcb900]" />
+                                <span>Bypass & test as {activeRole.title} (Instant Demo Access)</span>
+                            </button>
+                        </div>
                     </form>
 
                 </div>
