@@ -18,14 +18,19 @@ export default function Header({ currentUser, onLogout, onGoToHome, onToggleSide
             {/* 1. Top Gradient Banner (Matching university.kiss.ac.in gradient) */}
             <div className="bg-gradient-to-r from-[#17d059] to-[#00a6e2] text-white py-1 px-4 sm:px-8 text-xs font-semibold">
                 <div className="w-full flex justify-between items-center">
-                    <button
-                        onClick={onGoToHome}
-                        className="inline-flex items-center gap-1.5 text-white/95 hover:text-white hover:underline transition"
-                        title="Back to Public Website"
-                    >
-                        <ArrowLeft size={13} />
-                        <span>Go to KISS Home page / Public Website</span>
-                    </button>
+                    <div className="flex items-center gap-2.5">
+                        <button
+                            onClick={onGoToHome}
+                            className="inline-flex items-center gap-1.5 text-white/95 hover:text-white hover:underline transition"
+                            title="Back to Public Website"
+                        >
+                            <ArrowLeft size={13} />
+                            <span className="hidden sm:inline">Back to Public Website</span>
+                        </button>
+                        <span className="bg-amber-300 text-amber-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wide shadow-sm">
+                            🎓 Academic Project Prototype
+                        </span>
+                    </div>
 
                     {/* Social Links */}
                     <div className="flex items-center gap-3 text-white/95">

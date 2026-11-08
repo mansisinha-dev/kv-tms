@@ -112,16 +112,21 @@ export default function HomePage({ onGoToLogin, currentUser, onGoToPortal, onLog
                 {/* 1. Top Gradient Banner (Exact gradient from university.kiss.ac.in) */}
                 <div className="bg-gradient-to-r from-[#17d059] to-[#00a6e2] text-white py-1.5 px-4 sm:px-8 lg:px-12 text-xs font-semibold">
                     <div className="w-full flex justify-between items-center">
-                        <a
-                            href="https://kiss.ac.in"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-white/95 hover:text-white hover:underline transition"
-                            title="Go to KISS Foundation Homepage"
-                        >
-                            <ArrowLeft size={13} />
-                            <span>Go to KISS Home page (kiss.ac.in)</span>
-                        </a>
+                        <div className="flex items-center gap-2.5">
+                            <a
+                                href="https://kiss.ac.in"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-white/95 hover:text-white hover:underline transition"
+                                title="Go to KISS Foundation Homepage"
+                            >
+                                <ArrowLeft size={13} />
+                                <span className="hidden sm:inline">Go to KISS Home page (kiss.ac.in)</span>
+                            </a>
+                            <span className="bg-amber-300 text-amber-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wide shadow-sm">
+                                🎓 Academic Project Prototype
+                            </span>
+                        </div>
 
                         {/* Social Links */}
                         <div className="flex items-center gap-3 text-white/95">
