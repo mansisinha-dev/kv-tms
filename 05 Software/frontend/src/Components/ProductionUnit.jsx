@@ -32,8 +32,7 @@ import {
     Users,
     Lock
 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 // Comprehensive Vocational Workshop Configurations
 const WORKSHOPS_CONFIG = [

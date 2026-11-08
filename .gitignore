@@ -53,3 +53,9 @@ $RECYCLE.BIN/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Logs & Standalone Executables
+*.log
+**/*.log
+*.exe
+**/*.exe

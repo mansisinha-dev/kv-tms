@@ -23,6 +23,7 @@ import {
     Award,
     Coins
 } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function Sidebar({ activeTab, setActiveTab, currentUser, backendStatus, isOpen, setIsOpen }) {
     // Dynamic pending approvals count for Admin
@@ -57,7 +58,7 @@ export default function Sidebar({ activeTab, setActiveTab, currentUser, backendS
             } catch (e) {}
 
             try {
-                const res = await axios.get('http://localhost:8080/api/v1/production/runs/pending-approval');
+                const res = await axios.get(`${API_BASE_URL}/production/runs/pending-approval`);
                 if (Array.isArray(res.data)) {
                     res.data.forEach(r => {
                         seen.add(r.batchNumber || r.id);

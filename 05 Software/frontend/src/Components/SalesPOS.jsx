@@ -27,6 +27,7 @@ import {
     FileText,
     Building
 } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const DEFAULT_POS_INVENTORY = [
     {
@@ -183,8 +184,8 @@ export default function SalesPOS({ onNavigateTab }) {
     const fetchPOSData = async () => {
         try {
             const [stockRes, ordersRes] = await Promise.all([
-                axios.get('http://localhost:8080/api/v1/inventory/finished-goods'),
-                axios.get('http://localhost:8080/api/v1/sales/orders')
+                axios.get(`${API_BASE_URL}/inventory/finished-goods`),
+                axios.get(`${API_BASE_URL}/sales/orders`)
             ]);
 
             if (Array.isArray(stockRes.data) && stockRes.data.length > 0) {
@@ -342,7 +343,7 @@ export default function SalesPOS({ onNavigateTab }) {
         };
 
         try {
-            const res = await axios.post('http://localhost:8080/api/v1/sales/orders', payload);
+            const res = await axios.post(`${API_BASE_URL}/sales/orders`, payload);
             const created = res.data;
 
             const newOrder = {
@@ -412,7 +413,7 @@ export default function SalesPOS({ onNavigateTab }) {
                 quantity: Number(editForm.quantity) || editOrder.qty
             };
 
-            await axios.put(`http://localhost:8080/api/v1/sales/orders/${editOrder.rawId}`, payload);
+            await axios.put(`${API_BASE_URL}/sales/orders/${editOrder.rawId}`, payload);
             setEditOrder(null);
             await fetchPOSData();
         } catch (err) {
@@ -432,7 +433,7 @@ export default function SalesPOS({ onNavigateTab }) {
 
         setDispatching(true);
         try {
-            await axios.put(`http://localhost:8080/api/v1/sales/orders/${orderId}/dispatch`);
+            await axios.put(`${API_BASE_URL}/sales/orders/${orderId}/dispatch`);
             setEditOrder(null);
             await fetchPOSData();
         } catch (err) {
@@ -461,7 +462,7 @@ export default function SalesPOS({ onNavigateTab }) {
         }
 
         try {
-            await axios.delete(`http://localhost:8080/api/v1/sales/orders/${ord.rawId}`);
+            await axios.delete(`${API_BASE_URL}/sales/orders/${ord.rawId}`);
             // Remove from local frontend orders list immediately
             setOrders(prev => prev.filter(o => o.rawId !== ord.rawId));
             if (editOrder && editOrder.rawId === ord.rawId) {

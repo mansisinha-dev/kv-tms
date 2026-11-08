@@ -41,8 +41,7 @@ import {
     Trash2
 } from 'lucide-react';
 import { VocationalStore } from '../utils/vocationalStore';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 // Default Resilient Datasets for Faculty / Trainer Console (Handicrafts & Tribal Art VOC-ART-102)
 export const DEFAULT_TRAINER_TRAINEES = [

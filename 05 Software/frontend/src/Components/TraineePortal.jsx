@@ -39,8 +39,7 @@ import {
 } from 'lucide-react';
 
 import { VocationalStore } from '../utils/vocationalStore';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 // ============================================================================
 // DEFAULT RESILIENT MOCK DATASETS (OFFLINE-FIRST & INSTANT HYDRATION)

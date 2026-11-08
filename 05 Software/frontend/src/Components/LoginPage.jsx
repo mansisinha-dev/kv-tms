@@ -18,8 +18,7 @@ import {
 } from 'lucide-react';
 
 import kissLogo from '../assets/kiss-logo.png';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 const PORTAL_ROLES = [
     {

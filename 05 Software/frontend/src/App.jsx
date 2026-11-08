@@ -15,8 +15,7 @@ import SalesPOS from './components/SalesPOS';
 import AIForecasting from './components/AIForecasting';
 import QualityDefectCenter from './components/QualityDefectCenter';
 import FeedbackCertificationHub from './components/FeedbackCertificationHub';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from './apiConfig';
 
 export default function App() {
   // Page View state: 'home' | 'login' | 'portal'

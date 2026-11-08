@@ -53,8 +53,7 @@ import {
     Hourglass,
     AlertTriangle
 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function AdminConsole({ activeSection = 'courses', onNavigateSection, currentUser }) {
     let resolvedUser = currentUser;

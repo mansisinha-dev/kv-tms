@@ -30,6 +30,7 @@ import {
     ChevronRight,
     FileSpreadsheet
 } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 
 const DEFAULT_RAW_MATERIALS = [
     { id: 1, name: 'Pure Cotton Fabric', currentStock: 250.0, unitOfMeasure: 'Meters', unitCost: 120.0, reorderLevel: 50.0, warehouseLocation: 'Dual Warehouse #1 (Textile Bay A)' },
@@ -160,10 +161,10 @@ export default function DualWarehouse({ onNavigateTab }) {
         if (isManualRefresh) setRefreshing(true);
         try {
             const [rawRes, finishedRes, runsRes, workshopsRes] = await Promise.all([
-                axios.get('http://localhost:8080/api/v1/production/raw-materials'),
-                axios.get('http://localhost:8080/api/v1/inventory/finished-goods'),
-                axios.get('http://localhost:8080/api/v1/production/runs'),
-                axios.get('http://localhost:8080/api/v1/production/workshops')
+                axios.get(`${API_BASE_URL}/production/raw-materials`),
+                axios.get(`${API_BASE_URL}/inventory/finished-goods`),
+                axios.get(`${API_BASE_URL}/production/runs`),
+                axios.get(`${API_BASE_URL}/production/workshops`)
             ]);
 
             if (Array.isArray(rawRes.data) && rawRes.data.length > 0) {
@@ -443,7 +444,7 @@ export default function DualWarehouse({ onNavigateTab }) {
             const costNum = restockCost ? parseFloat(restockCost) : selectedMaterialForRestock.unitCost;
 
             await axios.post(
-                `http://localhost:8080/api/v1/production/raw-materials/${selectedMaterialForRestock.id}/restock?quantity=${qtyNum}&unitCost=${costNum}`
+                `${API_BASE_URL}/production/raw-materials/${selectedMaterialForRestock.id}/restock?quantity=${qtyNum}&unitCost=${costNum}`
             );
 
             setNotificationMessage({
@@ -479,7 +480,7 @@ export default function DualWarehouse({ onNavigateTab }) {
         setIsSubmittingAdjust(true);
         try {
             await axios.put(
-                `http://localhost:8080/api/v1/inventory/finished-goods/${selectedFinishedGood.id}/adjust?quantity=${adjustQty}`
+                `${API_BASE_URL}/inventory/finished-goods/${selectedFinishedGood.id}/adjust?quantity=${adjustQty}`
             );
 
             setNotificationMessage({

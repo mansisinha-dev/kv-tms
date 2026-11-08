@@ -17,8 +17,7 @@ import {
     X
 } from 'lucide-react';
 import { VocationalStore } from '../utils/vocationalStore';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 const extractCourseCode = (str = '') => {
     const match = String(str).toUpperCase().match(/VOC-[A-Z]+-\d+/);

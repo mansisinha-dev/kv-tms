@@ -38,8 +38,7 @@ import kissLogo from '../assets/kiss-logo.png';
 import founderPhoto from '../assets/achyuta-samanta.jpg';
 import skillDevImg from '../assets/kiss-skill-development.jpg';
 import campusOverviewImg from '../assets/kiss-campus-overview.jpg';
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { API_BASE_URL } from '../apiConfig';
 
 export default function HomePage({ onGoToLogin, currentUser, onGoToPortal, onLogout }) {
     const [courses, setCourses] = useState([]);
