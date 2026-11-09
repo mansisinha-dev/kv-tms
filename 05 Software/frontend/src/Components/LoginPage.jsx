@@ -349,7 +349,7 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
                 {/* Academic Evaluation Disclaimer Notice */}
                 <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-[11px] text-amber-900 font-medium flex items-center justify-center gap-1.5">
                     <AlertCircle size={14} className="text-amber-600 shrink-0" />
-                    <span><strong>Academic Notice:</strong> This is a student project prototype for educational evaluation only. It is <strong>NOT an official portal</strong> of KISS University.</span>
+                    <span><strong>Academic Notice:</strong> This is a Software Engineering student project prototype for educational evaluation only. It is <strong>NOT an official portal</strong> of KISS University.</span>
                 </div>
 
                 {/* Card Body */}
@@ -555,9 +555,9 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
             {/* 3. Bottom Footer Note */}
             <footer className="w-full max-w-5xl text-center py-2 text-white/70 text-xs z-10 space-y-1">
                 <p className="text-amber-300 font-semibold text-[11px]">
-                    🎓 Academic Final Year Project Prototype &bull; Developed strictly for educational evaluation &bull; Not an official KISS website
+                    🎓 Software Engineering Project Prototype &bull; Developed strictly for academic course evaluation &bull; Not an official KISS website
                 </p>
-                <p className="text-[10px] text-white/50">&copy; {new Date().getFullYear()} KV-TMS Academic Project. All institutional trademarks belong to Kalinga Institute of Social Sciences.</p>
+                <p className="text-[10px] text-white/50">&copy; {new Date().getFullYear()} KV-TMS Software Engineering Project. All institutional trademarks belong to Kalinga Institute of Social Sciences.</p>
             </footer>
 
         </div>

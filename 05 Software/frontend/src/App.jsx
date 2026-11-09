@@ -195,7 +195,7 @@ export default function App() {
 
         {/* Academic Project Disclaimer Ribbon */}
         <div className="bg-amber-100 border-b border-amber-300 text-amber-950 px-4 py-1 text-center text-[11px] font-semibold flex items-center justify-center gap-2 shrink-0">
-          <span>🎓 <strong>Academic Demonstration Prototype:</strong> For educational evaluation only &bull; Not an official KISS University website</span>
+          <span>🎓 <strong>Software Engineering Project Prototype:</strong> For educational evaluation only &bull; Not an official KISS University website</span>
         </div>
 
         {/* Master Workspace: Fixed Left Sidebar + Scrollable Dynamic Content */}

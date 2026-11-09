@@ -124,7 +124,7 @@ export default function HomePage({ onGoToLogin, currentUser, onGoToPortal, onLog
                                 <span className="hidden sm:inline">Go to KISS Home page (kiss.ac.in)</span>
                             </a>
                             <span className="bg-amber-300 text-amber-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wide shadow-sm">
-                                🎓 Academic Project Prototype
+                                🎓 Software Engineering Project Prototype
                             </span>
                         </div>
 
@@ -1145,10 +1145,10 @@ export default function HomePage({ onGoToLogin, currentUser, onGoToPortal, onLog
 
                 <div className="max-w-7xl mx-auto pt-6 border-t border-slate-900 text-center text-[11px] text-slate-500 space-y-2">
                     <div className="bg-slate-900/90 border border-amber-500/40 rounded-xl p-3 max-w-3xl mx-auto text-amber-300/95 text-xs leading-relaxed text-center shadow-md">
-                        ⚠️ <strong>ACADEMIC PROJECT DISCLAIMER:</strong> This website is an educational software prototype developed strictly for final year project evaluation and examination demonstration. It is <strong>NOT an official portal or website</strong> of Kalinga Institute of Social Sciences (KISS Deemed to be University). All trademarks, names, and logos are referenced solely for academic evaluation purposes.
+                        ⚠️ <strong>ACADEMIC PROJECT DISCLAIMER:</strong> This website is an educational software prototype developed strictly for <strong>Software Engineering (SE) course evaluation</strong> and academic examination demonstration. It is <strong>NOT an official portal or website</strong> of Kalinga Institute of Social Sciences (KISS Deemed to be University). All trademarks, names, and logos are referenced solely for academic evaluation purposes.
                     </div>
-                    <p>&copy; {new Date().getFullYear()} KV-TMS Academic Demonstration Project. All Institutional Trademarks belong to Kalinga Institute of Social Sciences.</p>
-                    <p>KV-TMS v1.0 &bull; Closed-Loop Vocational Training Management System Academic Prototype</p>
+                    <p>&copy; {new Date().getFullYear()} KV-TMS Software Engineering Project. All Institutional Trademarks belong to Kalinga Institute of Social Sciences.</p>
+                    <p>KV-TMS v1.0 &bull; Closed-Loop Vocational Training Management System &bull; Software Engineering Lab Project</p>
                 </div>
             </footer>
 

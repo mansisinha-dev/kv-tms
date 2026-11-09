@@ -28,7 +28,7 @@ export default function Header({ currentUser, onLogout, onGoToHome, onToggleSide
                             <span className="hidden sm:inline">Back to Public Website</span>
                         </button>
                         <span className="bg-amber-300 text-amber-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wide shadow-sm">
-                            🎓 Academic Project Prototype
+                            🎓 Software Engineering Project Prototype
                         </span>
                     </div>
 
