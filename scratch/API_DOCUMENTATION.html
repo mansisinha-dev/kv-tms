@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KV-TMS RESTful API Specification</title>
+<style>
+    @page {
+        size: A4;
+        margin: 18mm 14mm 18mm 14mm;
+        @bottom-right {
+            content: "Page " counter(page);
+            font-size: 9pt;
+            color: #64748b;
+        }
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1e293b;
+        line-height: 1.5;
+        font-size: 10pt;
+        background-color: #ffffff;
+        margin: 0;
+        padding: 0;
+    }
+    .header-banner {
+        background: linear-gradient(135deg, #006837 0%, #1e3a8a 100%);
+        color: #ffffff;
+        padding: 24px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        border-bottom: 4px solid #fcb900;
+    }
+    .header-banner h1 {
+        margin: 0 0 6px 0;
+        font-size: 20pt;
+        font-weight: 800;
+        color: #ffffff;
+    }
+    .header-banner p {
+        margin: 4px 0;
+        font-size: 10.5pt;
+        opacity: 0.95;
+    }
+    h1 {
+        color: #006837;
+        font-size: 16pt;
+        border-bottom: 2px solid #006837;
+        padding-bottom: 4px;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        page-break-after: avoid;
+    }
+    h2 {
+        color: #1e3a8a;
+        font-size: 13pt;
+        margin-top: 18px;
+        margin-bottom: 8px;
+        page-break-after: avoid;
+    }
+    h3 {
+        color: #334155;
+        font-size: 11pt;
+        margin-top: 14px;
+        margin-bottom: 6px;
+        page-break-after: avoid;
+    }
+    h4 {
+        color: #475569;
+        font-size: 10pt;
+        margin-top: 10px;
+        margin-bottom: 4px;
+        page-break-after: avoid;
+    }
+    p, li {
+        font-size: 9.5pt;
+        color: #334155;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0 16px 0;
+        font-size: 8.5pt;
+        page-break-inside: auto;
+    }
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    thead {
+        display: table-header-group;
+    }
+    th {
+        background-color: #006837;
+        color: #ffffff;
+        font-weight: 700;
+        text-align: left;
+        padding: 6px 8px;
+        border: 1px solid #00522c;
+    }
+    td {
+        padding: 5px 8px;
+        border: 1px solid #cbd5e1;
+        vertical-align: top;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f8fafc;
+    }
+    code {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 8.5pt;
+        background-color: #f1f5f9;
+        color: #0f172a;
+        padding: 1px 4px;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+    }
+    pre {
+        background-color: #0f172a;
+        color: #f8fafc;
+        padding: 10px 12px;
+        border-radius: 6px;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 8pt;
+        overflow-x: auto;
+        page-break-inside: avoid;
+        margin: 8px 0;
+    }
+    pre code {
+        background: transparent;
+        color: #f8fafc;
+        padding: 0;
+        border: none;
+    }
+    .badge {
+        font-weight: 700;
+        font-size: 7.5pt;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        color: #ffffff;
+        font-family: Consolas, monospace;
+    }
+    .badge-get { background-color: #0284c7; }
+    .badge-post { background-color: #16a34a; }
+    .badge-put { background-color: #d97706; }
+    .badge-del { background-color: #dc2626; }
+    hr {
+        border: 0;
+        height: 1px;
+        background-color: #e2e8f0;
+        margin: 18px 0;
+    }
+    .footer-note {
+        margin-top: 30px;
+        padding-top: 10px;
+        border-top: 1px solid #cbd5e1;
+        font-size: 8pt;
+        color: #64748b;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+<div class="header-banner">
+    <h1>KISS VOCATIONAL TRAINING MANAGEMENT SYSTEM (KV-TMS)</h1>
+    <p><strong>RESTful API Specification & Developer Integration Reference Manual</strong></p>
+    <p>Version 1.0.0 Enterprise • Spring Boot 3.3 / Java 17 / MySQL 8.0 / React 18</p>
+</div>
+
+<h1 id="kiss-vocational-training-management-system-kv-tms">KISS Vocational Training Management System (KV-TMS)</h1>
+<h2 id="comprehensive-rest-api-documentation-integration-specification">Comprehensive REST API Documentation &amp; Integration Specification</h2>
+<p><strong>Version:</strong> 1.0.0 (Production Release)<br />
+<strong>Base URL:</strong> <code>http://localhost:8080/api/v1</code><br />
+<strong>Protocol:</strong> HTTP/1.1 &amp; HTTPS<br />
+<strong>Authentication:</strong> Bearer JSON Web Token (JWT)<br />
+<strong>Standard Response Format:</strong> <code>application/json</code><br />
+<strong>Date of Ratification:</strong> November 2026  </p>
+<hr />
+<h2 id="1-system-architecture-api-gateway-overview">1. System Architecture &amp; API Gateway Overview</h2>
+<p>The <strong>KISS Vocational Training Management System (KV-TMS)</strong> exposes a unified, closed-loop RESTful API layer that bridges academic vocational training, raw material supply chain, artisan production runs, finished goods warehousing, commercial sales, and Direct Benefit Transfer (DBT) stipend disbursements.</p>
+<h3 id="system-architecture-flow">System Architecture Flow</h3>
+<pre><code class="language-mermaid">flowchart TD
+    Client[&quot;KV-TMS React 18 Frontend\n(Port 5173)&quot;]
+    Gateway[&quot;Spring Boot Security Filter &amp; JWT Validator\n(/api/v1)&quot;]
+
+    subgraph Core_Services [&quot;Micro-Service Controllers&quot;]
+        Auth[&quot;1. Auth &amp; Governance\n(/auth)&quot;]
+        Acad[&quot;2. Academics &amp; Attendance\n(/academics)&quot;]
+        Prod[&quot;3. Production &amp; BOM\n(/production)&quot;]
+        Inv[&quot;4. Warehouse Inventory\n(/inventory)&quot;]
+        Sales[&quot;5. Commercial POS Sales\n(/sales)&quot;]
+        AI[&quot;6. Demand Forecasting\n(/forecast)&quot;]
+        DBT[&quot;7. Stipends &amp; DBT\n(/incentives)&quot;]
+        Leave[&quot;8. Leave Management\n(/leaves)&quot;]
+        Notice[&quot;9. Campus Notices\n(/notices)&quot;]
+        Report[&quot;10. Executive Analytics\n(/reports)&quot;]
+    end
+
+    DB[(MySQL 8.0 kvtms_db\nInnoDB ACID Transactions)]
+
+    Client --&gt;|HTTP + JWT| Gateway
+    Gateway --&gt; Auth
+    Gateway --&gt; Acad
+    Gateway --&gt; Prod
+    Gateway --&gt; Inv
+    Gateway --&gt; Sales
+    Gateway --&gt; AI
+    Gateway --&gt; DBT
+    Gateway --&gt; Leave
+    Gateway --&gt; Notice
+    Gateway --&gt; Report
+
+    Auth &amp; Acad &amp; Prod &amp; Inv &amp; Sales &amp; AI &amp; DBT &amp; Leave &amp; Notice &amp; Report --&gt; DB
+</code></pre>
+<hr />
+<h2 id="2-global-authentication-role-based-access-control-rbac">2. Global Authentication &amp; Role-Based Access Control (RBAC)</h2>
+<p>Every request to protected endpoints must include the JWT token in the <code>Authorization</code> header:</p>
+<pre><code class="language-http">Authorization: Bearer &lt;JWT_TOKEN&gt;
+Content-Type: application/json
+</code></pre>
+<h3 id="access-role-hierarchy">Access Role Hierarchy</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Role Identifier</th>
+<th style="text-align: left;">Role Key</th>
+<th style="text-align: left;">Authorized Scope</th>
+<th style="text-align: left;">Sample User</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Central Admin</strong></td>
+<td style="text-align: left;"><code>ROLE_ADMIN</code></td>
+<td style="text-align: left;">Full university governance, course creation, batch approval, DBT disbursements, user management.</td>
+<td style="text-align: left;"><code>KISS-ADM-001</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Faculty Trainer</strong></td>
+<td style="text-align: left;"><code>ROLE_TRAINER</code></td>
+<td style="text-align: left;">Workshop management, studio attendance marking, curriculum updates, scholar marksheet grading.</td>
+<td style="text-align: left;"><code>KISS-FAC-001</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Production Manager</strong></td>
+<td style="text-align: left;"><code>ROLE_PRODUCTION_MANAGER</code></td>
+<td style="text-align: left;">BOM creation, raw material restock, batch run start/complete, finished goods stock tracking.</td>
+<td style="text-align: left;"><code>KISS-PRD-001</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Vocational Scholar</strong></td>
+<td style="text-align: left;"><code>ROLE_TRAINEE</code></td>
+<td style="text-align: left;">Personal attendance tracking (75% audit), marksheet review, leave applications, DBT stipend ledger.</td>
+<td style="text-align: left;"><code>KISS-TRN-2026-001</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-master-api-directory-83-endpoints-across-10-modules">3. Master API Directory (83 Endpoints across 10 Modules)</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>HTTP Method</th>
+<th>Endpoint URI</th>
+<th>Module</th>
+<th>Primary Role</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/auth/login</code></td>
+<td>Authentication</td>
+<td>Public</td>
+<td>Authenticate user &amp; return JWT token + user details</td>
+</tr>
+<tr>
+<td>2</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/auth/register-trainee</code></td>
+<td>Authentication</td>
+<td>Admin</td>
+<td>Onboard vocational scholar trainee profile</td>
+</tr>
+<tr>
+<td>3</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/auth/register-trainer</code></td>
+<td>Authentication</td>
+<td>Admin</td>
+<td>Onboard faculty instructor trainer profile</td>
+</tr>
+<tr>
+<td>4</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/auth/register-admin</code></td>
+<td>Authentication</td>
+<td>Admin</td>
+<td>Provision new university administrator account</td>
+</tr>
+<tr>
+<td>5</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/auth/register-production-staff</code></td>
+<td>Authentication</td>
+<td>Admin</td>
+<td>Onboard commercial production supervisor/staff</td>
+</tr>
+<tr>
+<td>6</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/auth/users</code></td>
+<td>Authentication</td>
+<td>Admin</td>
+<td>Retrieve all registered users across 4 portals</td>
+</tr>
+<tr>
+<td>7</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/auth/profile/{collegeId}</code></td>
+<td>Authentication</td>
+<td>All Roles</td>
+<td>Fetch comprehensive profile details by college/staff ID</td>
+</tr>
+<tr>
+<td>8</td>
+<td><span class='badge badge-del'>DELETE</span></td>
+<td><code>/auth/users/{collegeId}</code></td>
+<td>Authentication</td>
+<td>Admin</td>
+<td>Delete user account from database</td>
+</tr>
+<tr>
+<td>9</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/auth/courses</code></td>
+<td>Authentication</td>
+<td>Public</td>
+<td>Active courses dropdown list for registration</td>
+</tr>
+<tr>
+<td>10</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/academics/courses</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Create new vocational course with syllabus modules</td>
+</tr>
+<tr>
+<td>11</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/courses/detailed</code></td>
+<td>Academics</td>
+<td>Admin / Trainer</td>
+<td>Master catalog of courses with syllabus &amp; stats</td>
+</tr>
+<tr>
+<td>12</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/academics/courses/{courseId}</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Update course metadata, fee &amp; description</td>
+</tr>
+<tr>
+<td>13</td>
+<td><span class='badge badge-del'>DELETE</span></td>
+<td><code>/academics/courses/{courseId}</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Delete course from system</td>
+</tr>
+<tr>
+<td>14</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/academics/courses/{courseId}/toggle-status</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Toggle course active / inactive state</td>
+</tr>
+<tr>
+<td>15</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/courses/{courseId}/enrollments</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>View faculty and scholars enrolled in course</td>
+</tr>
+<tr>
+<td>16</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/courses/{courseId}/syllabus</code></td>
+<td>Academics</td>
+<td>All Roles</td>
+<td>View NSQF syllabus modules for a course</td>
+</tr>
+<tr>
+<td>17</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/academics/courses/{courseId}/syllabus</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Add syllabus module to a course</td>
+</tr>
+<tr>
+<td>18</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/academics/syllabus-modules/{moduleId}</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Update syllabus module title, hours, and description</td>
+</tr>
+<tr>
+<td>19</td>
+<td><span class='badge badge-del'>DELETE</span></td>
+<td><code>/academics/syllabus-modules/{moduleId}</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Delete syllabus module</td>
+</tr>
+<tr>
+<td>20</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/trainees</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Get list of all enrolled trainees with trades</td>
+</tr>
+<tr>
+<td>21</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/academics/attendance/mark</code></td>
+<td>Academics</td>
+<td>Trainer</td>
+<td>Batch mark daily studio practical attendance</td>
+</tr>
+<tr>
+<td>22</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/attendance/today</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Get today's practical attendance logs</td>
+</tr>
+<tr>
+<td>23</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/attendance/by-date</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Get practical attendance logs for a specific date</td>
+</tr>
+<tr>
+<td>24</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/attendance/history</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Complete historical log of attendance sessions</td>
+</tr>
+<tr>
+<td>25</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/academics/attendance/admin-override</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Override historical attendance record</td>
+</tr>
+<tr>
+<td>26</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/trainees/by-college-id/{collegeId}/attendance</code></td>
+<td>Academics</td>
+<td>Trainee / All</td>
+<td>Fetch trainee session logs for 75% compliance</td>
+</tr>
+<tr>
+<td>27</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/academics/scores</code></td>
+<td>Academics</td>
+<td>Trainer</td>
+<td>Record trainee NSQF practical examination score</td>
+</tr>
+<tr>
+<td>28</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/scores/by-college-id/{collegeId}</code></td>
+<td>Academics</td>
+<td>Trainee / All</td>
+<td>Get practical assessment marksheet by scholar ID</td>
+</tr>
+<tr>
+<td>29</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/trainees/{traineeId}/progress</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Progress summary (attendance % and marks)</td>
+</tr>
+<tr>
+<td>30</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/trainees/by-college-id/{collegeId}/progress</code></td>
+<td>Academics</td>
+<td>Trainee / All</td>
+<td>Progress summary by college ID</td>
+</tr>
+<tr>
+<td>31</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/academics/trainers/by-college-id/{collegeId}/attendance</code></td>
+<td>Academics</td>
+<td>Trainer / Admin</td>
+<td>Trainer studio attendance compliance report</td>
+</tr>
+<tr>
+<td>32</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/academics/trainers/attendance/mark</code></td>
+<td>Academics</td>
+<td>Admin</td>
+<td>Mark/override faculty instructor attendance</td>
+</tr>
+<tr>
+<td>33</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/production/raw-materials</code></td>
+<td>Production</td>
+<td>Production</td>
+<td>Add raw material with minimum reorder threshold</td>
+</tr>
+<tr>
+<td>34</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/raw-materials</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>View all raw materials and current stock</td>
+</tr>
+<tr>
+<td>35</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/raw-materials/low-stock</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>Get low-stock raw material alerts</td>
+</tr>
+<tr>
+<td>36</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/production/raw-materials/{id}/restock</code></td>
+<td>Production</td>
+<td>Production</td>
+<td>Restock raw material quantity (POST)</td>
+</tr>
+<tr>
+<td>37</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/production/raw-materials/{id}/restock</code></td>
+<td>Production</td>
+<td>Production</td>
+<td>Restock raw material quantity (PUT)</td>
+</tr>
+<tr>
+<td>38</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/production/products</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>Create product with Bill of Materials (BOM)</td>
+</tr>
+<tr>
+<td>39</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/products</code></td>
+<td>Production</td>
+<td>All Roles</td>
+<td>View all cataloged artisan products</td>
+</tr>
+<tr>
+<td>40</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/products/{productId}/bom</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>View Bill of Materials component recipe</td>
+</tr>
+<tr>
+<td>41</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/production/runs/start</code></td>
+<td>Production</td>
+<td>Production</td>
+<td>Start batch run (deducts raw material stock)</td>
+</tr>
+<tr>
+<td>42</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/production/runs/{runId}/complete</code></td>
+<td>Production</td>
+<td>Production</td>
+<td>Complete batch run with output and scrap</td>
+</tr>
+<tr>
+<td>43</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/runs</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>View all batch production runs</td>
+</tr>
+<tr>
+<td>44</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/runs/{runId}/contributors</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>View scholar artisan team members for batch</td>
+</tr>
+<tr>
+<td>45</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/runs/pending-approval</code></td>
+<td>Production</td>
+<td>Admin</td>
+<td>Batches awaiting central admin QA inspection</td>
+</tr>
+<tr>
+<td>46</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/production/runs/{runId}/approve</code></td>
+<td>Production</td>
+<td>Admin</td>
+<td>Approve batch for sale (intakes to warehouse)</td>
+</tr>
+<tr>
+<td>47</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/production/runs/{runId}/reject</code></td>
+<td>Production</td>
+<td>Admin</td>
+<td>Reject batch with corrective action remarks</td>
+</tr>
+<tr>
+<td>48</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/reports/summary</code></td>
+<td>Production</td>
+<td>Production / Admin</td>
+<td>Aggregated production unit summary metrics</td>
+</tr>
+<tr>
+<td>49</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/production/workshops/propose</code></td>
+<td>Production</td>
+<td>Trainer / Prod</td>
+<td>Propose practical studio workshop session</td>
+</tr>
+<tr>
+<td>50</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/workshops</code></td>
+<td>Production</td>
+<td>All Roles</td>
+<td>View all practical workshop sessions</td>
+</tr>
+<tr>
+<td>51</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/workshops/active</code></td>
+<td>Production</td>
+<td>All Roles</td>
+<td>View currently active workshop sessions</td>
+</tr>
+<tr>
+<td>52</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/production/workshops/pending</code></td>
+<td>Production</td>
+<td>Admin</td>
+<td>View workshops awaiting administrative approval</td>
+</tr>
+<tr>
+<td>53</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/production/workshops/{id}/approve</code></td>
+<td>Production</td>
+<td>Admin</td>
+<td>Approve studio workshop session</td>
+</tr>
+<tr>
+<td>54</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/production/workshops/{id}/reject</code></td>
+<td>Production</td>
+<td>Admin</td>
+<td>Reject studio workshop session</td>
+</tr>
+<tr>
+<td>55</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/inventory/finished-goods</code></td>
+<td>Inventory</td>
+<td>Production / Admin</td>
+<td>View finished goods warehouse stock</td>
+</tr>
+<tr>
+<td>56</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/inventory/stock</code></td>
+<td>Inventory</td>
+<td>Production / Admin</td>
+<td>Manually adjust/initialize finished goods stock</td>
+</tr>
+<tr>
+<td>57</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/inventory/alerts/low-stock</code></td>
+<td>Inventory</td>
+<td>Production / Admin</td>
+<td>View low-stock finished goods alerts</td>
+</tr>
+<tr>
+<td>58</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/sales/orders</code></td>
+<td>Sales</td>
+<td>Sales / Admin</td>
+<td>Process POS order (auto-deducts warehouse stock)</td>
+</tr>
+<tr>
+<td>59</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/sales/orders</code></td>
+<td>Sales</td>
+<td>Sales / Admin</td>
+<td>List all commercial sales orders</td>
+</tr>
+<tr>
+<td>60</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/sales/orders/{id}</code></td>
+<td>Sales</td>
+<td>Sales / Admin</td>
+<td>Update order details (prior to dispatch)</td>
+</tr>
+<tr>
+<td>61</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/sales/orders/{id}/dispatch</code></td>
+<td>Sales</td>
+<td>Sales / Admin</td>
+<td>Mark order as dispatched to client</td>
+</tr>
+<tr>
+<td>62</td>
+<td><span class='badge badge-del'>DELETE</span></td>
+<td><code>/sales/orders/{id}</code></td>
+<td>Sales</td>
+<td>Sales / Admin</td>
+<td>Cancel order and restore finished goods stock</td>
+</tr>
+<tr>
+<td>63</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/sales/summary</code></td>
+<td>Sales</td>
+<td>Sales / Admin</td>
+<td>Financial revenue and sales channel summary</td>
+</tr>
+<tr>
+<td>64</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/forecast/products/{productId}</code></td>
+<td>AI Forecasting</td>
+<td>Production / Admin</td>
+<td>Run ML heuristic production demand forecast</td>
+</tr>
+<tr>
+<td>65</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/incentives/batches/{runId}/calculate</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Admin / Trainer</td>
+<td>Calculate scholar incentives for completed batch</td>
+</tr>
+<tr>
+<td>66</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/incentives/my-earnings</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Trainee</td>
+<td>Authenticated scholar's personal earnings ledger</td>
+</tr>
+<tr>
+<td>67</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/incentives/trainees/{traineeId}</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Admin / Trainer</td>
+<td>Trainee earnings summary by trainee ID</td>
+</tr>
+<tr>
+<td>68</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/incentives/by-college-id/{collegeId}</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Trainee / Admin</td>
+<td>Trainee earnings summary by college roll number</td>
+</tr>
+<tr>
+<td>69</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/incentives/pending</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Admin</td>
+<td>View all pending production incentive payouts</td>
+</tr>
+<tr>
+<td>70</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/incentives/all</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Admin</td>
+<td>University-wide incentive disbursement ledger</td>
+</tr>
+<tr>
+<td>71</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/incentives/{incentiveId}/disburse</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Admin</td>
+<td>Disburse individual incentive via DBT</td>
+</tr>
+<tr>
+<td>72</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/incentives/batches/{runId}/disburse</code></td>
+<td>Stipends &amp; DBT</td>
+<td>Admin</td>
+<td>Bulk disburse all incentives for a batch via DBT</td>
+</tr>
+<tr>
+<td>73</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/leaves/apply</code></td>
+<td>Leaves</td>
+<td>Trainee / Trainer</td>
+<td>Submit leave application</td>
+</tr>
+<tr>
+<td>74</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/leaves/by-student/{collegeId}</code></td>
+<td>Leaves</td>
+<td>Trainee / Admin</td>
+<td>View personal leave requests &amp; approval states</td>
+</tr>
+<tr>
+<td>75</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/leaves/pending</code></td>
+<td>Leaves</td>
+<td>Trainer / Admin</td>
+<td>View all pending leave requests</td>
+</tr>
+<tr>
+<td>76</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/leaves/all</code></td>
+<td>Leaves</td>
+<td>Admin</td>
+<td>View comprehensive institutional leave records</td>
+</tr>
+<tr>
+<td>77</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/leaves/{leaveId}/review</code></td>
+<td>Leaves</td>
+<td>Trainer / Admin</td>
+<td>Approve or reject leave with reviewer remarks</td>
+</tr>
+<tr>
+<td>78</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/notices</code></td>
+<td>Campus Directives</td>
+<td>All Roles</td>
+<td>View all active administrative notices</td>
+</tr>
+<tr>
+<td>79</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/notices/audience/{audience}</code></td>
+<td>Campus Directives</td>
+<td>All Roles</td>
+<td>Filter notices by audience (TRAINEES, TRAINERS, ALL)</td>
+</tr>
+<tr>
+<td>80</td>
+<td><span class='badge badge-post'>POST</span></td>
+<td><code>/notices</code></td>
+<td>Campus Directives</td>
+<td>Admin</td>
+<td>Publish/broadcast campus directive</td>
+</tr>
+<tr>
+<td>81</td>
+<td><span class='badge badge-del'>DELETE</span></td>
+<td><code>/notices/{id}</code></td>
+<td>Campus Directives</td>
+<td>Admin</td>
+<td>Archive/delete campus notice</td>
+</tr>
+<tr>
+<td>82</td>
+<td><span class='badge badge-put'>PUT</span></td>
+<td><code>/notices/{id}/pin</code></td>
+<td>Campus Directives</td>
+<td>Admin</td>
+<td>Toggle high-priority pinned status of notice</td>
+</tr>
+<tr>
+<td>83</td>
+<td><span class='badge badge-get'>GET</span></td>
+<td><code>/reports/executive-dashboard</code></td>
+<td>Executive Analytics</td>
+<td>Admin / Executive</td>
+<td>Cross-pillar university analytics &amp; KPI summary</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-in-depth-endpoint-specifications">4. In-Depth Endpoint Specifications</h2>
+<h3 id="41-authentication-user-governance-apiv1auth">4.1 Authentication &amp; User Governance (<code>/api/v1/auth</code>)</h3>
+<h4 id="1-user-login">1. User Login</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/auth/login</code></li>
+<li><strong>Access:</strong> Public</li>
+<li><strong>Request Body (<code>LoginRequest</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;username&quot;: &quot;KISS-ADM-001&quot;,
+  &quot;password&quot;: &quot;KISS-ADM-001@123&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Response (<code>AuthResponse</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;token&quot;: &quot;eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJLSVNTLUFETS0wMDEiLCJyb2xlcyI6WyJST0xFX0FETUlOIl19...&quot;,
+  &quot;username&quot;: &quot;KISS-ADM-001&quot;,
+  &quot;collegeId&quot;: &quot;KISS-ADM-001&quot;,
+  &quot;fullName&quot;: &quot;Dr. Debashis Mohanty&quot;,
+  &quot;role&quot;: &quot;ROLE_ADMIN&quot;,
+  &quot;email&quot;: &quot;debashis.mohanty@kiss.ac.in&quot;,
+  &quot;contactNumber&quot;: &quot;+91 94370 12345&quot;
+}
+</code></pre>
+<h4 id="2-register-vocational-scholar-trainee">2. Register Vocational Scholar (Trainee)</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/auth/register-trainee</code></li>
+<li><strong>Access:</strong> Admin (<code>ROLE_ADMIN</code>)</li>
+<li><strong>Request Body (<code>TraineeRegisterRequest</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;fullName&quot;: &quot;Laxman Majhi&quot;,
+  &quot;collegeId&quot;: &quot;KISS-TRN-2026-001&quot;,
+  &quot;password&quot;: &quot;KISS-TRN-2026-001@123&quot;,
+  &quot;email&quot;: &quot;laxman.majhi@kiss.ac.in&quot;,
+  &quot;contactNumber&quot;: &quot;9861023456&quot;,
+  &quot;assignedCourseId&quot;: 1,
+  &quot;category&quot;: &quot;Scheduled Tribe (KISS Scholar)&quot;,
+  &quot;dob&quot;: &quot;2004-05-14&quot;,
+  &quot;bloodGroup&quot;: &quot;O+&quot;,
+  &quot;admissionDate&quot;: &quot;2025-08-01&quot;,
+  &quot;address&quot;: &quot;KISS Campus-3 Tribal Residential Hostel, Baripada, Mayurbhanj, Odisha&quot;
+}
+</code></pre>
+<hr />
+<h3 id="42-academics-curriculum-attendance-apiv1academics">4.2 Academics, Curriculum &amp; Attendance (<code>/api/v1/academics</code>)</h3>
+<h4 id="1-batch-mark-practical-studio-attendance">1. Batch Mark Practical Studio Attendance</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/academics/attendance/mark</code></li>
+<li><strong>Access:</strong> Faculty Trainer (<code>ROLE_TRAINER</code>)</li>
+<li><strong>Request Body (<code>BatchAttendanceRequest</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;courseId&quot;: 1,
+  &quot;date&quot;: &quot;2026-03-24&quot;,
+  &quot;attendanceList&quot;: [
+    {
+      &quot;traineeId&quot;: 1,
+      &quot;status&quot;: &quot;PRESENT&quot;,
+      &quot;remarks&quot;: &quot;Garment construction &amp; precision lockstitch seaming&quot;
+    },
+    {
+      &quot;traineeId&quot;: 2,
+      &quot;status&quot;: &quot;ABSENT&quot;,
+      &quot;remarks&quot;: &quot;Sanctioned medical leave&quot;
+    }
+  ]
+}
+</code></pre>
+<ul>
+<li><strong>Response:</strong></li>
+</ul>
+<pre><code class="language-text">&quot;Batch attendance marked successfully for 2 trainees on 2026-03-24&quot;
+</code></pre>
+<h4 id="2-record-nsqf-practical-evaluation-score">2. Record NSQF Practical Evaluation Score</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/academics/scores</code></li>
+<li><strong>Access:</strong> Faculty Trainer (<code>ROLE_TRAINER</code>)</li>
+<li><strong>Request Body (<code>ScoreRecordRequest</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;traineeId&quot;: 1,
+  &quot;courseId&quot;: 1,
+  &quot;overallScore&quot;: 91.0,
+  &quot;grade&quot;: &quot;Grade A (Distinction)&quot;,
+  &quot;practicalMarks&quot;: 36.4,
+  &quot;remarks&quot;: &quot;Exemplary precision in garment construction, lockstitch seaming, and artisan finishing.&quot;
+}
+</code></pre>
+<h4 id="3-trainee-personal-attendance-logs-75-compliance-audit">3. Trainee Personal Attendance Logs (75% Compliance Audit)</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-get'>GET</span></li>
+<li><strong>URI:</strong> <code>/api/v1/academics/trainees/by-college-id/{collegeId}/attendance</code></li>
+<li><strong>Access:</strong> All Authenticated Roles</li>
+<li><strong>Response:</strong></li>
+</ul>
+<pre><code class="language-json">[
+  {
+    &quot;id&quot;: 20,
+    &quot;date&quot;: &quot;2026-03-24&quot;,
+    &quot;courseCode&quot;: &quot;VOC-SEW-101&quot;,
+    &quot;courseName&quot;: &quot;Sewing &amp; Apparel Manufacturing&quot;,
+    &quot;status&quot;: &quot;PRESENT&quot;,
+    &quot;remarks&quot;: &quot;Garment construction &amp; precision lockstitch seaming&quot;
+  }
+]
+</code></pre>
+<hr />
+<h3 id="43-production-bill-of-materials-bom-batch-manufacturing-apiv1production">4.3 Production, Bill of Materials (BOM) &amp; Batch Manufacturing (<code>/api/v1/production</code>)</h3>
+<h4 id="1-create-artisan-product-with-bill-of-materials-bom">1. Create Artisan Product with Bill of Materials (BOM)</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/production/products</code></li>
+<li><strong>Access:</strong> Production Supervisor (<code>ROLE_PRODUCTION_MANAGER</code>), Admin (<code>ROLE_ADMIN</code>)</li>
+<li><strong>Request Body (<code>ProductCreateDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;Handcrafted Cotton Kurti&quot;,
+  &quot;sku&quot;: &quot;PRD-KURTI-01&quot;,
+  &quot;description&quot;: &quot;Traditional hand-embroidered tribal motif kurti&quot;,
+  &quot;sellingPrice&quot;: 650.0,
+  &quot;incentiveRatePerUnit&quot;: 75.0,
+  &quot;courseId&quot;: 1,
+  &quot;bomItems&quot;: [
+    {
+      &quot;rawMaterialId&quot;: 1,
+      &quot;quantityRequired&quot;: 2.5
+    },
+    {
+      &quot;rawMaterialId&quot;: 3,
+      &quot;quantityRequired&quot;: 5.0
+    }
+  ]
+}
+</code></pre>
+<h4 id="2-start-batch-production-run">2. Start Batch Production Run</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/production/runs/start</code></li>
+<li><strong>Access:</strong> Production Supervisor (<code>ROLE_PRODUCTION_MANAGER</code>)</li>
+<li><strong>Request Body (<code>ProductionRunCreateDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;batchNumber&quot;: &quot;BATCH-2026-SEW-001&quot;,
+  &quot;productId&quot;: 1,
+  &quot;targetQuantity&quot;: 15,
+  &quot;traineeIds&quot;: [1, 2, 3],
+  &quot;remarks&quot;: &quot;Workshop Lab #1 (Sewing &amp; Textiles)&quot;
+}
+</code></pre>
+<h4 id="3-complete-batch-production-run">3. Complete Batch Production Run</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-put'>PUT</span></li>
+<li><strong>URI:</strong> <code>/api/v1/production/runs/{runId}/complete</code></li>
+<li><strong>Access:</strong> Production Supervisor (<code>ROLE_PRODUCTION_MANAGER</code>)</li>
+<li><strong>Request Body (<code>ProductionCompleteDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;completedQuantity&quot;: 13,
+  &quot;scrappedQuantity&quot;: 2,
+  &quot;remarks&quot;: &quot;Zero-defect finishing completed; 2 units rejected during tension test.&quot;
+}
+</code></pre>
+<h4 id="4-admin-quality-inspection-approval-for-commercial-sale">4. Admin Quality Inspection Approval for Commercial Sale</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-put'>PUT</span></li>
+<li><strong>URI:</strong> <code>/api/v1/production/runs/{runId}/approve</code></li>
+<li><strong>Access:</strong> Central Admin (<code>ROLE_ADMIN</code>)</li>
+<li><strong>Action:</strong> Changes batch status to <code>APPROVED_FOR_SALE</code> and automatically increases finished goods stock in <code>FinishedGoodsStock</code> inventory!</li>
+</ul>
+<hr />
+<h3 id="44-commercial-sales-pos-ordering-apiv1sales">4.4 Commercial Sales &amp; POS Ordering (<code>/api/v1/sales</code>)</h3>
+<h4 id="1-process-pos-order-instant-stock-deduction">1. Process POS Order (Instant Stock Deduction)</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/sales/orders</code></li>
+<li><strong>Access:</strong> Sales Executive, Admin</li>
+<li><strong>Request Body (<code>OrderCreateDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;customerName&quot;: &quot;Odisha Tribal Art Emporium&quot;,
+  &quot;customerPhone&quot;: &quot;9437199999&quot;,
+  &quot;channel&quot;: &quot;COMMERCIAL_WHOLESALE&quot;,
+  &quot;orderItems&quot;: [
+    {
+      &quot;productId&quot;: 1,
+      &quot;quantity&quot;: 5,
+      &quot;unitPrice&quot;: 650.0
+    }
+  ],
+  &quot;paymentMethod&quot;: &quot;NEFT_BANK_TRANSFER&quot;,
+  &quot;remarks&quot;: &quot;Institutional order for National Tribal Craft Expo&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Response:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;id&quot;: 1,
+  &quot;orderNumber&quot;: &quot;ORD-2026-101&quot;,
+  &quot;customerName&quot;: &quot;Odisha Tribal Art Emporium&quot;,
+  &quot;totalAmount&quot;: 3250.0,
+  &quot;status&quot;: &quot;CONFIRMED&quot;,
+  &quot;orderDate&quot;: &quot;2026-03-24T11:45:00&quot;
+}
+</code></pre>
+<hr />
+<h3 id="45-ai-predictive-demand-forecasting-apiv1forecast">4.5 AI Predictive Demand Forecasting (<code>/api/v1/forecast</code>)</h3>
+<h4 id="1-generate-product-demand-forecast-safety-stock-recommendation">1. Generate Product Demand Forecast &amp; Safety Stock Recommendation</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-get'>GET</span></li>
+<li><strong>URI:</strong> <code>/api/v1/forecast/products/{productId}</code></li>
+<li><strong>Access:</strong> Production Supervisor, Central Admin</li>
+<li><strong>Response (<code>ForecastResponseDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;productId&quot;: 1,
+  &quot;productName&quot;: &quot;Handcrafted Cotton Kurti&quot;,
+  &quot;currentStock&quot;: 8,
+  &quot;predictedMonthlyDemand&quot;: 28,
+  &quot;recommendedBatchSize&quot;: 25,
+  &quot;safetyStockBuffer&quot;: 10,
+  &quot;stockoutRisk&quot;: &quot;HIGH&quot;,
+  &quot;seasonalFactor&quot;: 1.35,
+  &quot;confidenceScore&quot;: 0.92,
+  &quot;forecastHorizon&quot;: &quot;Next 30 Days&quot;,
+  &quot;insights&quot;: &quot;High pre-festival demand surge anticipated. Initiate production batch immediately.&quot;
+}
+</code></pre>
+<hr />
+<h3 id="46-scholar-production-stipends-direct-benefit-transfer-dbt-apiv1incentives">4.6 Scholar Production Stipends &amp; Direct Benefit Transfer (DBT) (<code>/api/v1/incentives</code>)</h3>
+<h4 id="1-scholar-personal-earnings-ledger">1. Scholar Personal Earnings Ledger</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-get'>GET</span></li>
+<li><strong>URI:</strong> <code>/api/v1/incentives/by-college-id/{collegeId}</code></li>
+<li><strong>Access:</strong> Scholar, Central Admin</li>
+<li><strong>Response (<code>TraineeEarningsSummaryDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;traineeId&quot;: 1,
+  &quot;fullName&quot;: &quot;Laxman Majhi&quot;,
+  &quot;totalEarned&quot;: 4100.0,
+  &quot;totalDisbursed&quot;: 3300.0,
+  &quot;totalPending&quot;: 800.0,
+  &quot;records&quot;: [
+    {
+      &quot;id&quot;: 1,
+      &quot;batchNumber&quot;: &quot;BATCH-2026-042&quot;,
+      &quot;productName&quot;: &quot;Handcrafted Sambalpuri Nehru Jackets&quot;,
+      &quot;unitsCrafted&quot;: 14,
+      &quot;amountEarned&quot;: 1400.0,
+      &quot;status&quot;: &quot;DISBURSED&quot;,
+      &quot;transactionReference&quot;: &quot;DBT-SBIN-88349120&quot;,
+      &quot;disbursedDate&quot;: &quot;2026-03-20&quot;
+    },
+    {
+      &quot;id&quot;: 2,
+      &quot;batchNumber&quot;: &quot;BATCH-2026-045&quot;,
+      &quot;productName&quot;: &quot;Heritage Cotton Khadi Tote Bags&quot;,
+      &quot;unitsCrafted&quot;: 10,
+      &quot;amountEarned&quot;: 800.0,
+      &quot;status&quot;: &quot;PENDING&quot;,
+      &quot;transactionReference&quot;: null,
+      &quot;disbursedDate&quot;: null
+    }
+  ]
+}
+</code></pre>
+<h4 id="2-disburse-scholar-incentive-via-dbt">2. Disburse Scholar Incentive via DBT</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-put'>PUT</span></li>
+<li><strong>URI:</strong> <code>/api/v1/incentives/{incentiveId}/disburse</code></li>
+<li><strong>Access:</strong> Central Admin (<code>ROLE_ADMIN</code>)</li>
+<li><strong>Request Body (<code>IncentiveDisburseDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;transactionReference&quot;: &quot;DBT-SBIN-99201844&quot;
+}
+</code></pre>
+<hr />
+<h3 id="47-leave-management-approvals-apiv1leaves">4.7 Leave Management &amp; Approvals (<code>/api/v1/leaves</code>)</h3>
+<h4 id="1-submit-leave-request">1. Submit Leave Request</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/leaves/apply</code></li>
+<li><strong>Access:</strong> Trainee, Trainer</li>
+<li><strong>Request Body (<code>LeaveApplyRequest</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;collegeId&quot;: &quot;KISS-TRN-2026-001&quot;,
+  &quot;startDate&quot;: &quot;2026-03-28&quot;,
+  &quot;endDate&quot;: &quot;2026-03-30&quot;,
+  &quot;reason&quot;: &quot;Village Chaitra Parva Annual Harvest Festival Celebration&quot;
+}
+</code></pre>
+<h4 id="2-review-leave-application">2. Review Leave Application</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-put'>PUT</span></li>
+<li><strong>URI:</strong> <code>/api/v1/leaves/{leaveId}/review</code></li>
+<li><strong>Access:</strong> Faculty Trainer, Central Admin</li>
+<li><strong>Request Body (<code>LeaveReviewRequest</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;status&quot;: &quot;APPROVED&quot;,
+  &quot;reviewRemarks&quot;: &quot;Sanctioned with condition to attend practical make-up studio session.&quot;
+}
+</code></pre>
+<hr />
+<h3 id="48-campus-directives-notices-broadcast-apiv1notices">4.8 Campus Directives &amp; Notices Broadcast (<code>/api/v1/notices</code>)</h3>
+<h4 id="1-publish-campus-notice">1. Publish Campus Notice</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-post'>POST</span></li>
+<li><strong>URI:</strong> <code>/api/v1/notices</code></li>
+<li><strong>Access:</strong> Central Admin (<code>ROLE_ADMIN</code>)</li>
+<li><strong>Request Body (<code>Notice</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;NSDC Skill Assessment Certification Phase-II Schedule&quot;,
+  &quot;content&quot;: &quot;All vocational trainees must carry their student ID and biometric pass for the upcoming external NSDC evaluator assessment commencing April 2nd.&quot;,
+  &quot;priority&quot;: &quot;IMPORTANT&quot;,
+  &quot;category&quot;: &quot;EXAMINATION&quot;,
+  &quot;targetAudience&quot;: &quot;TRAINEES&quot;,
+  &quot;pinned&quot;: true,
+  &quot;postedBy&quot;: &quot;Academic Council&quot;
+}
+</code></pre>
+<hr />
+<h3 id="49-executive-analytics-dashboard-apiv1reports">4.9 Executive Analytics Dashboard (<code>/api/v1/reports</code>)</h3>
+<h4 id="1-global-executive-dashboard">1. Global Executive Dashboard</h4>
+<ul>
+<li><strong>Method:</strong> <span class='badge badge-get'>GET</span></li>
+<li><strong>URI:</strong> <code>/api/v1/reports/executive-dashboard</code></li>
+<li><strong>Access:</strong> Central Admin, Executive Leadership</li>
+<li><strong>Response (<code>SystemAnalyticsDTO</code>):</strong></li>
+</ul>
+<pre><code class="language-json">{
+  &quot;totalStudentsEnrolled&quot;: 120,
+  &quot;totalVocationalCourses&quot;: 5,
+  &quot;completedProductionBatches&quot;: 38,
+  &quot;activeRawMaterials&quot;: 24,
+  &quot;totalFinishedGoodsInStock&quot;: 485,
+  &quot;totalSalesOrders&quot;: 42,
+  &quot;totalRevenueGenerated&quot;: 184500.0,
+  &quot;totalStudentIncentivesPaid&quot;: 42500.0
+}
+</code></pre>
+<hr />
+<h2 id="5-frontend-react-component-to-api-mapping">5. Frontend React Component to API Mapping</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">React Component File</th>
+<th style="text-align: left;">Primary Consumer Role</th>
+<th style="text-align: left;">APIs Consumed</th>
+<th style="text-align: left;">Key Features Supported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>AdminConsole.jsx</code></td>
+<td style="text-align: left;">Central Admin</td>
+<td style="text-align: left;"><code>/auth/*</code>, <code>/academics/*</code>, <code>/production/runs/pending-approval</code>, <code>/production/runs/*/approve</code>, <code>/incentives/pending</code>, <code>/leaves/all</code>, <code>/notices</code></td>
+<td style="text-align: left;">Scholar onboarding, course creation, attendance override, batch clearance, DBT disbursements</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TrainerConsole.jsx</code></td>
+<td style="text-align: left;">Faculty Trainer</td>
+<td style="text-align: left;"><code>/academics/courses/*/syllabus</code>, <code>/academics/trainees</code>, <code>/academics/attendance/mark</code>, <code>/academics/scores</code>, <code>/leaves/pending</code>, <code>/notices</code></td>
+<td style="text-align: left;">Daily practical attendance, rubric scoring, curriculum updates, leave reviews</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TraineePortal.jsx</code></td>
+<td style="text-align: left;">Vocational Scholar</td>
+<td style="text-align: left;"><code>/auth/profile/*</code>, <code>/academics/courses/*/syllabus</code>, <code>/academics/scores/*</code>, <code>/academics/trainees/*/attendance</code>, <code>/incentives/by-college-id/*</code>, <code>/leaves/apply</code></td>
+<td style="text-align: left;">75% attendance audit, NSQF marksheets, Earn-While-You-Learn DBT ledger, leave tracker</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ProductionUnit.jsx</code></td>
+<td style="text-align: left;">Production Supervisor</td>
+<td style="text-align: left;"><code>/production/products</code>, <code>/production/raw-materials</code>, <code>/production/runs/start</code>, <code>/production/runs/*/complete</code>, <code>/production/workshops/propose</code></td>
+<td style="text-align: left;">BOM engineering, material intake, artisan batch management, workshop scheduling</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DualWarehouse.jsx</code></td>
+<td style="text-align: left;">Storekeeper / Admin</td>
+<td style="text-align: left;"><code>/production/raw-materials/*</code>, <code>/inventory/finished-goods</code>, <code>/inventory/alerts/low-stock</code></td>
+<td style="text-align: left;">Raw material stocks, finished goods stock tracking, low-stock threshold alerts</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SalesPOS.jsx</code></td>
+<td style="text-align: left;">Sales Executive / Admin</td>
+<td style="text-align: left;"><code>/sales/orders</code>, <code>/sales/summary</code>, <code>/inventory/finished-goods</code></td>
+<td style="text-align: left;">Point-of-Sale cash/card/UPI checkout, automated stock decrement, sales history</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AIForecasting.jsx</code></td>
+<td style="text-align: left;">Production Planning</td>
+<td style="text-align: left;"><code>/forecast/products/*</code>, <code>/production/products</code>, <code>/sales/summary</code></td>
+<td style="text-align: left;">Machine learning demand prediction, recommended batch sizes, stockout alerts</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ExecutiveDashboard.jsx</code></td>
+<td style="text-align: left;">Vice Chancellor / Dean</td>
+<td style="text-align: left;"><code>/reports/executive-dashboard</code>, <code>/sales/summary</code>, <code>/production/reports/summary</code></td>
+<td style="text-align: left;">High-level university KPIs across academics, artisan production, revenue &amp; DBT</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LoginPage.jsx</code></td>
+<td style="text-align: left;">All Access Roles</td>
+<td style="text-align: left;"><code>/auth/login</code></td>
+<td style="text-align: left;">Multi-role gateway, 256-bit JWT authentication, offline demo fallback</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-http-status-code-reference">6. HTTP Status Code Reference</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Status Code</th>
+<th style="text-align: left;">Reason</th>
+<th style="text-align: left;">Meaning in KV-TMS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>200 OK</code></strong></td>
+<td style="text-align: left;">Success</td>
+<td style="text-align: left;">Request succeeded and response payload contains the requested data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>201 Created</code></strong></td>
+<td style="text-align: left;">Created</td>
+<td style="text-align: left;">New entity (course, product, order, notice) successfully persisted.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>204 No Content</code></strong></td>
+<td style="text-align: left;">Deleted</td>
+<td style="text-align: left;">Entity successfully cancelled or deleted from the database.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>400 Bad Request</code></strong></td>
+<td style="text-align: left;">Validation Error</td>
+<td style="text-align: left;">Request body failed Jakarta Bean Validation (e.g., missing required fields).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>401 Unauthorized</code></strong></td>
+<td style="text-align: left;">Auth Failure</td>
+<td style="text-align: left;">Invalid credentials or expired/missing Bearer JWT token.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>403 Forbidden</code></strong></td>
+<td style="text-align: left;">Insufficient Role</td>
+<td style="text-align: left;">User role does not have authorization to access this administrative endpoint.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>404 Not Found</code></strong></td>
+<td style="text-align: left;">Not Found</td>
+<td style="text-align: left;">Target ID (course, trainee, batch, order) does not exist in MySQL.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>500 Server Error</code></strong></td>
+<td style="text-align: left;">Internal Error</td>
+<td style="text-align: left;">Unhandled server exception (logged with stack trace in backend log).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-sample-automated-curl-execution-scripts">7. Sample Automated cURL Execution Scripts</h2>
+<h3 id="1-test-login-capture-jwt">1. Test Login &amp; Capture JWT</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8080/api/v1/auth/login \
+     -H &quot;Content-Type: application/json&quot; \
+     -d '{&quot;username&quot;:&quot;KISS-ADM-001&quot;,&quot;password&quot;:&quot;KISS-ADM-001@123&quot;}'
+</code></pre>
+<h3 id="2-fetch-executive-dashboard-analytics">2. Fetch Executive Dashboard Analytics</h3>
+<pre><code class="language-bash">curl -X GET http://localhost:8080/api/v1/reports/executive-dashboard \
+     -H &quot;Authorization: Bearer &lt;TOKEN&gt;&quot;
+</code></pre>
+<h3 id="3-mark-studio-attendance">3. Mark Studio Attendance</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8080/api/v1/academics/attendance/mark \
+     -H &quot;Authorization: Bearer &lt;TOKEN&gt;&quot; \
+     -H &quot;Content-Type: application/json&quot; \
+     -d '{
+       &quot;courseId&quot;: 1,
+       &quot;date&quot;: &quot;2026-03-25&quot;,
+       &quot;attendanceList&quot;: [{&quot;traineeId&quot;: 1, &quot;status&quot;: &quot;PRESENT&quot;, &quot;remarks&quot;: &quot;Lockstitch machine operation&quot;}]
+     }'
+</code></pre>
+<h3 id="4-disburse-scholar-dbt-incentive">4. Disburse Scholar DBT Incentive</h3>
+<pre><code class="language-bash">curl -X PUT http://localhost:8080/api/v1/incentives/1/disburse \
+     -H &quot;Authorization: Bearer &lt;TOKEN&gt;&quot; \
+     -H &quot;Content-Type: application/json&quot; \
+     -d '{&quot;transactionReference&quot;: &quot;DBT-SBIN-77889900&quot;}'
+</code></pre>
+<hr />
+<p><em>Authored by the Google DeepMind &amp; KISS Advanced Software Engineering Team for KV-TMS Enterprise Release.</em></p>
+
+<div class="footer-note">
+    Official Enterprise Documentation &bull; Kalinga Institute of Social Sciences (KISS Deemed to be University) &bull; Confidential & Proprietary
+</div>
+</body>
+</html>
