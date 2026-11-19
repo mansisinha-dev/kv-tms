@@ -22,7 +22,8 @@
 - **University:** KIIT Deemed to be University, Bhubaneswar, Odisha, India
 - **Partner Institution:** Kalinga Institute of Social Sciences (KISS)
 - **Academic Session:** 2025 – 2026
-- **Submission Type:** B.Tech Major Capstone Project Repository & Viva Voce Submission
+- **Submission Type:** Software Engineering (SE) Course Project Submission
+- **Live 24/7 Web Demo:** [https://kiss-vms-demo.netlify.app](https://kiss-vms-demo.netlify.app)
 
 ---
 
